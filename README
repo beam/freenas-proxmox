@@ -1,0 +1,11 @@
+patch files:
+/usr/share/pve-manager/js/pvemanagerlib.js
+/usr/share/perl5/PVE/Storage/ZFSPlugin.pm
+
+copy
+/usr/share/perl5/REST
+/usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm
+
+UPDATE FreeNAS username and password in FreeNAS.pm
+
+systemctl restart pvedaemon

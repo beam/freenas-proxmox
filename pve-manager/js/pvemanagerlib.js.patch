@@ -1,0 +1,9 @@
+--- pvemanagerlib.js	2017-05-17 14:40:41.495308664 +0200
++++ pvemanagerlib.js	2017-05-17 14:41:17.439945082 +0200
+@@ -7258,7 +7258,8 @@
+     comboItems: [
+ 	['comstar', 'Comstar'],
+ 	[ 'istgt', 'istgt'],
+-	[ 'iet', 'IET']
++	[ 'iet', 'IET'],
++	[ 'freenas', 'FreeNAS']
