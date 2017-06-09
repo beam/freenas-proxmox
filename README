@@ -8,4 +8,8 @@ copy
 
 UPDATE FreeNAS username and password in FreeNAS.pm
 
+
+in /usr/bin/pvedaemon remove -T from perl
+
 systemctl restart pvedaemon
+
