@@ -400,13 +400,13 @@ sub freenas_get_first_available_lunid {
     push(@luns, $item->{'iscsi_lunid'}) if ($item->{'iscsi_target'} == $target_id);
   }
 
-  my @sorted_luns = sort(@luns);
-  my $lun_id     = 0;
+  my @sorted_luns =  sort { $a <=> $b } @luns;
+  my $lun_id      = 0;
 
   # find the first hole, if not, give the +1 of the last lun
   foreach my $lun ( @sorted_luns ) {
-	last if $lun != $lun_id;
-	$lun_id = $lun_id + 1;
+  	last if $lun != $lun_id;
+  	$lun_id = $lun_id + 1;
   }
 
   syslog("info","FreeNAS::API::freenas_get_first_available_lunid : return $lun_id");
