@@ -202,7 +202,7 @@ sub freenas_iscsi_get_globalconfiguration {
 
 sub freenas_iscsi_get_extent {
     my ($scfg) = @_;
-    my $client = freenas_api_call($scfg,'GET',"/api/v1.0/services/iscsi/extent/",undef);
+    my $client = freenas_api_call($scfg,'GET',"/api/v1.0/services/iscsi/extent/?limit=0",undef);
 
     my $code = $client->responseCode();
     if ($code == 200) {
@@ -277,7 +277,7 @@ sub freenas_iscsi_remove_extent {
 sub freenas_iscsi_get_target {
     my ($scfg) = @_;
 
-    my $client = freenas_api_call($scfg,'GET',"/api/v1.0/services/iscsi/target/",undef);
+    my $client = freenas_api_call($scfg,'GET',"/api/v1.0/services/iscsi/target/?limit=0",undef);
     my $code = $client->responseCode();
     if ($code == 200) {
       my $result = decode_json($client->responseContent());
@@ -295,7 +295,7 @@ sub freenas_iscsi_get_target {
 sub freenas_iscsi_get_target_to_extent {
     my ($scfg) = @_;
 
-    my $client = freenas_api_call($scfg,'GET',"/api/v1.0/services/iscsi/targettoextent/",undef);
+    my $client = freenas_api_call($scfg,'GET',"/api/v1.0/services/iscsi/targettoextent/?limit=0",undef);
     my $code = $client->responseCode();
     if ($code == 200) {
       my $result = decode_json($client->responseContent());
