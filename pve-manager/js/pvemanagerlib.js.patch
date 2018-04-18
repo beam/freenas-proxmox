@@ -1,9 +1,37 @@
---- pvemanagerlib.js	2017-05-17 14:40:41.495308664 +0200
-+++ pvemanagerlib.js	2017-05-17 14:41:17.439945082 +0200
-@@ -7258,7 +7258,8 @@
+--- pvemanagerlib.js.orig       2018-04-17 09:46:23.137417873 -0400
++++ pvemanagerlib.js    2018-04-18 14:09:30.858616030 -0400
+@@ -5188,6 +5188,7 @@
+     alias: ['widget.pveiScsiProviderSelector'],
      comboItems: [
- 	['comstar', 'Comstar'],
- 	[ 'istgt', 'istgt'],
--	[ 'iet', 'IET']
-+	[ 'iet', 'IET'],
-+	[ 'freenas', 'FreeNAS']
+        ['comstar', 'Comstar'],
++       ['freenas', 'FreeNAS-API'],
+        [ 'istgt', 'istgt'],
+        [ 'iet', 'IET']
+     ]
+@@ -26079,6 +26080,13 @@
+                value: '',
+                fieldLabel: gettext('Target group'),
+                allowBlank: true
++           },
++           {
++               xtype: me.isCreate ? 'textfield' : 'displayfield',
++               name: 'freenas_user',
++               value: '',
++               fieldLabel: gettext('FreeNAS User'),
++               allowBlank: true
+            }
+        ];
+
+@@ -26110,6 +26118,13 @@
+                value: '',
+                fieldLabel: gettext('Host group'),
+                allowBlank: true
++           },
++           {
++               xtype: me.isCreate ? 'textfield' : 'displayfield',
++               name: 'freenas_password',
++               value: '',
++               fieldLabel: gettext('FreeNAS Password'),
++               allowBlank: true
+            }
+        ];
