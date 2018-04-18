@@ -359,6 +359,15 @@ sub freenas_iscsi_get_target_to_extent {
     if ($code == 200) {
         my $result = decode_json($client->responseContent());
         syslog("info","FreeNAS::API::get_target_to_extent() : sucessfull");
+        # If 'iscsi_lunid' is undef then it is set to 'Auto' in FreeNAS
+        # which should be '0' in our eyes.
+        # This gave Proxmox 5.x and FreeNAS 11.1 a few issues.
+        foreach my $item (@$result) {
+            if (!defined($item->{'iscsi_lunid'})) {
+                $item->{'iscsi_lunid'} = 0;
+                syslog("info", "FreeNAS::API::get_target_to_extent() : change undef iscsi_lunid to 0");
+            }
+        }
         return $result;
     } else {
         freenas_api_log_error($client, "get_target_to_extent");
