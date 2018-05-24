@@ -1,6 +1,6 @@
---- pvemanagerlib.js.orig       2018-04-17 09:46:23.137417873 -0400
-+++ pvemanagerlib.js    2018-04-18 14:09:30.858616030 -0400
-@@ -5188,6 +5188,7 @@
+--- /usr/share/pve-manager/js/pvemanagerlib.js.orig     2018-05-23 16:53:17.014250092 -0400
++++ /usr/share/pve-manager/js/pvemanagerlib.js  2018-05-23 16:58:22.848825697 -0400
+@@ -5303,6 +5303,7 @@
      alias: ['widget.pveiScsiProviderSelector'],
      comboItems: [
         ['comstar', 'Comstar'],
@@ -8,30 +8,35 @@
         [ 'istgt', 'istgt'],
         [ 'iet', 'IET']
      ]
-@@ -26079,6 +26080,13 @@
+@@ -27145,7 +27146,14 @@
                 value: '',
                 fieldLabel: gettext('Target group'),
                 allowBlank: true
+-           }
 +           },
-+           {
-+               xtype: me.isCreate ? 'textfield' : 'displayfield',
-+               name: 'freenas_user',
-+               value: '',
-+               fieldLabel: gettext('FreeNAS User'),
-+               allowBlank: true
-            }
++            {
++                xtype: me.isCreate ? 'textfield' : 'displayfield',
++                name: 'freenas_user',
++                value: '',
++                fieldLabel: gettext('FreeNAS User'),
++                allowBlank: true
++            }
         ];
 
-@@ -26110,6 +26118,13 @@
+        me.column2 = [
+@@ -27176,7 +27184,14 @@
                 value: '',
                 fieldLabel: gettext('Host group'),
                 allowBlank: true
+-           }
 +           },
-+           {
-+               xtype: me.isCreate ? 'textfield' : 'displayfield',
-+               name: 'freenas_password',
-+               value: '',
-+               fieldLabel: gettext('FreeNAS Password'),
-+               allowBlank: true
-            }
++            {
++                xtype: me.isCreate ? 'textfield' : 'displayfield',
++                name: 'freenas_password',
++                value: '',
++                fieldLabel: gettext('FreeNAS Password'),
++                allowBlank: true
++            }
         ];
+
+        me.callParent();

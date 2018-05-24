@@ -1,15 +1,25 @@
-patch files:
-/usr/share/pve-manager/js/pvemanagerlib.js
-/usr/share/perl5/PVE/Storage/ZFSPlugin.pm
+FreeNAS ZFS over iSCSI interface
 
-copy
-/usr/share/perl5/REST
-/usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm
+Please be aware that this enhancment uses the FreeNAS API's and NOT the ssh/scp
+like the other interface provide.
 
-UPDATE FreeNAS username and password in FreeNAS.pm
+1) First use the following commands to patch the needed files forthe FreeNAS Interface
+ patch /usr/share/pve-manager/js/pvemanagerlib.js < pve-manager/js/pvemanagerlib.js.patch
+ patch /usr/share/perl5/PVE/Storage/ZFSPlugin.pm < perl5/PVE/Storage/ZFSPlugin.pm.patch
+ patch /usr/share/pve-docs/api-viewer/apidoc.js < pve-docs/api-viewer/apidoc.js.patch
 
+2) Use the following commands to copy the needed files for the FreeNAS 
+ mkdir -p /usr/share/perl5/REST
+ cp perl5/REST/Client.pm
+ cp perl5/PVE/Storage/LunCmd/FreeNAS.pm /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm
 
-in /usr/bin/pvedaemon remove -T from perl
+3) Edit /usr/bin/pvedaemon and remove the '-T' from the perl command line.
+ vi /usr/bin/pvedaemon
 
-systemctl restart pvedaemon
+4) Execute the following at a console command prompt to active the above
+ systemctl restart pvedaemon
 
+5) Either goto the URL for the Proxmox GUI in your favorite browser
+   or
+   If you are already logged in via the GUI just refresh your browser to receive
+   the new Javascript code. 
