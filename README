@@ -10,11 +10,13 @@ like the other interface provide.
 
 2) Use the following commands to copy the needed files for the FreeNAS 
  mkdir -p /usr/share/perl5/REST
- cp perl5/REST/Client.pm
+ cp perl5/REST/Client.pm /usr/share/perl5/REST/Client.pm
  cp perl5/PVE/Storage/LunCmd/FreeNAS.pm /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm
 
 3) Edit /usr/bin/pvedaemon and remove the '-T' from the perl command line.
  vi /usr/bin/pvedaemon
+Not really sure about 'why' this is do I need to do some research on this PERL 
+directive option.
 
 4) Execute the following at a console command prompt to active the above
  systemctl restart pvedaemon
