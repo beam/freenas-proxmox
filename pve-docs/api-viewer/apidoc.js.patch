@@ -1,0 +1,40 @@
+--- /usr/share/pve-docs/api-viewer/apidoc.js.orig       2018-05-24 10:18:20.694525300 -0400
++++ /usr/share/pve-docs/api-viewer/apidoc.js    2018-05-24 10:11:22.329925779 -0400
+@@ -27549,6 +27549,18 @@
+                            "type" : "string",
+                            "typetext" : "<string>"
+                         },
++                        "freenas_user" : {
++                           "description" : "FreeNAS user for API calls",
++                           "optional" : 1,
++                           "type" : "string",
++                           "typetext" : "<string>"
++                        },
++                        "freenas_password" : {
++                           "description" : "FreeNAS password for API calls",
++                           "optional" : 1,
++                           "type" : "string",
++                           "typetext" : "<string>"
++                        },
+                         "content" : {
+                            "description" : "Allowed content types.\n\nNOTE: the value 'rootdir' is used for Containers, and value 'images' for VMs.\n",
+                            "format" : "pve-storage-content-list",
+@@ -27895,6 +27907,18 @@
+                      "optional" : 1,
+                      "type" : "string",
+                      "typetext" : "<string>"
++                  },
++                  "freenas_user" : {
++                     "description" : "FreeNAS user for API calls",
++                     "optional" : 1,
++                     "type" : "string",
++                     "typetext" : "<string>"
++                  },
++                  "freenas_password" : {
++                     "description" : "FreeNAS password for API calls",
++                     "optional" : 1,
++                     "type" : "string",
++                     "typetext" : "<string>"
+                   },
+                   "content" : {
+                      "description" : "Allowed content types.\n\nNOTE: the value 'rootdir' is used for Containers, and value 'images' for VMs.\n",
