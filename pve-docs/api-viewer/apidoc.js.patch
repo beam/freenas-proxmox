@@ -1,5 +1,5 @@
---- /usr/share/pve-docs/api-viewer/apidoc.js.orig       2018-05-24 10:18:20.694525300 -0400
-+++ /usr/share/pve-docs/api-viewer/apidoc.js    2018-05-24 10:11:22.329925779 -0400
+--- /usr/share/pve-docs/api-viewer/apidoc.js.orig	2018-06-04 12:08:17.416780601 +0800
++++ /usr/share/pve-docs/api-viewer/apidoc.js	2018-06-04 12:07:28.073832212 +0800
 @@ -27549,6 +27549,18 @@
                             "type" : "string",
                             "typetext" : "<string>"
