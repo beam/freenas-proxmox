@@ -14,7 +14,7 @@ Please be aware that this enhancment uses the FreeNAS APIs and NOT the ssh/scp l
     apt-get install librest-client-perl
     ```
 
-1. Use the following command to copy the needed file for the FreeNAS a
+1. Use the following command to copy the needed file for the FreeNAS connector.
     ```bash
     cp perl5/PVE/Storage/LunCmd/FreeNAS.pm /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm
     ```
