@@ -9,10 +9,13 @@ Please be aware that this enhancment uses the FreeNAS APIs and NOT the ssh/scp l
     patch -b /usr/share/pve-docs/api-viewer/apidoc.js < pve-docs/api-viewer/apidoc.js.patch
     ```
 
-1. Use the following commands to copy the needed files for the FreeNAS 
+1. Install the perl REST Client package from the repository.
     ```bash
-    mkdir -p /usr/share/perl5/REST
-    cp perl5/REST/Client.pm /usr/share/perl5/REST/Client.pm
+    apt-get install librest-client-perl
+    ```
+
+1. Use the following command to copy the needed file for the FreeNAS a
+    ```bash
     cp perl5/PVE/Storage/LunCmd/FreeNAS.pm /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm
     ```
 
