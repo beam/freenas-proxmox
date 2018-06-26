@@ -437,7 +437,8 @@ sub freenas_list_lu {
     my $targets   = freenas_iscsi_get_target($scfg);
     my $target_id = freenas_get_targetid($scfg);
 
-    my @luns      = ();
+    my @luns        = ();
+    my $iscsi_lunid = undef;
 
     if(defined($target_id)) {
         my $target2extents = freenas_iscsi_get_target_to_extent($scfg);
@@ -447,8 +448,14 @@ sub freenas_list_lu {
             if($item->{'iscsi_target'} == $target_id) {
                 foreach my $node (@$extents) {
                     if($node->{'id'} == $item->{'iscsi_extent'}) {
-                        $node->{'iscsi_lunid'} .= $item->{'iscsi_lunid'};
-                        push( @luns , $node);
+                        if ($item->{'iscsi_lunid'} =~ /(\d+)/) {
+                            my $iscsi_lunid = "$1";
+                        } else {
+                            syslog("info", "FreeNAS::API::freenas_list_lu : iscsi_lunid did not pass tainted testing");
+                            next;
+                        }
+                        $node->{'iscsi_lunid'} .= $iscsi_lunid;
+                        push(@luns , $node);
                     }
                 }
             }

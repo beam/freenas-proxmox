@@ -19,11 +19,6 @@ Please be aware that this enhancment uses the FreeNAS APIs and NOT the ssh/scp l
     cp perl5/PVE/Storage/LunCmd/FreeNAS.pm /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm
     ```
 
-1. Remove the `-T` taint directive from `/usr/bin/pvedaemon`. Not sure why this is needed. I need to do some research on this PERL directive option.
-    ```bash
-    sed -E -i.orig 's|^(#!/usr/bin/perl) -T|\1|' /usr/bin/pvedaemon
-    ```
-
 1. Execute the following at a console command prompt to active the above
     ```bash
     systemctl restart pvedaemon
