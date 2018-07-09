@@ -449,7 +449,7 @@ sub freenas_list_lu {
                 foreach my $node (@$extents) {
                     if($node->{'id'} == $item->{'iscsi_extent'}) {
                         if ($item->{'iscsi_lunid'} =~ /(\d+)/) {
-                            my $iscsi_lunid = "$1";
+                            $iscsi_lunid = "$1";
                         } else {
                             syslog("info", "FreeNAS::API::freenas_list_lu : iscsi_lunid did not pass tainted testing");
                             next;
