@@ -1,6 +1,6 @@
 --- /usr/share/pve-manager/js/pvemanagerlib.js.orig	2018-06-04 11:21:26.419121310 +0800
 +++ /usr/share/pve-manager/js/pvemanagerlib.js	2018-06-04 11:52:58.628592707 +0800
-@@ -5303,6 +5303,7 @@
+@@ -5356,6 +5356,7 @@
      alias: ['widget.pveiScsiProviderSelector'],
      comboItems: [
  	['comstar', 'Comstar'],
@@ -8,7 +8,7 @@
  	[ 'istgt', 'istgt'],
  	[ 'iet', 'IET']
      ]
-@@ -27145,6 +27146,13 @@
+@@ -27343,6 +27344,13 @@
  		value: '',
  		fieldLabel: gettext('Target group'),
  		allowBlank: true
@@ -22,7 +22,7 @@
  	    }
  	];
  
-@@ -27176,6 +27184,13 @@
+@@ -27374,6 +27382,13 @@
  		value: '',
  		fieldLabel: gettext('Host group'),
  		allowBlank: true
