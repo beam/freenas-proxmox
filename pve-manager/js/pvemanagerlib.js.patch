@@ -8,7 +8,7 @@
  	[ 'istgt', 'istgt'],
  	[ 'iet', 'IET']
      ]
-@@ -27343,6 +27344,13 @@
+@@ -27343,6 +27344,27 @@
  		value: '',
  		fieldLabel: gettext('Target group'),
  		allowBlank: true
@@ -19,13 +19,6 @@
 +		value: '',
 +		fieldLabel: gettext('FreeNAS User'),
 +		allowBlank: true
- 	    }
- 	];
- 
-@@ -27374,6 +27382,13 @@
- 		value: '',
- 		fieldLabel: gettext('Host group'),
- 		allowBlank: true
 +	    },
 +	    {
 +		xtype: me.isCreate ? 'textfield' : 'displayfield',
@@ -33,6 +26,13 @@
 +		value: '',
 +		fieldLabel: gettext('FreeNAS Password'),
 +		allowBlank: true
++	    },
++	    {
++		xtype: 'proxmoxcheckbox',
++		name: 'freenas_use_ssl',
++		checked: false,
++		uncheckedValue: 0,
++		fieldLabel: gettext('FreeNAS API use SSL')
  	    }
  	];
  

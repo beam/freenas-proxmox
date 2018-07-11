@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use PVE::SafeSyslog;
+use IO::Socket::SSL;
 
 use REST::Client;
 use MIME::Base64;
@@ -204,11 +205,18 @@ sub run_delete_lu {
 sub freenas_api_call {
     my ($scfg, $method, $path, $data) = @_;
     my $client = undef;
+    my $scheme = 'http';
 
     $client = REST::Client->new();
-    $client->setHost('http://'.  $scfg->{portal});
+    if ($scfg->{freenas_use_ssl}) {
+        $scheme = 'https';
+    }
+    $client->setHost($scheme . '://'.  $scfg->{portal});
     $client->addHeader('Content-Type'  , 'application/json');
     $client->addHeader('Authorization' , 'Basic ' . encode_base64(  $scfg->{freenas_user} . ':' .  $scfg->{freenas_password}));
+    # don't verify SSL certs
+    $client->getUseragent()->ssl_opts(verify_hostname => 0);
+    $client->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE );
 
     if ($method eq 'GET') {
         $client->GET($path);
