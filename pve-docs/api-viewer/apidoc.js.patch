@@ -1,6 +1,6 @@
 --- /usr/share/pve-docs/api-viewer/apidoc.js.orig	2018-06-04 12:08:17.416780601 +0800
 +++ /usr/share/pve-docs/api-viewer/apidoc.js	2018-06-04 12:07:28.073832212 +0800
-@@ -27549,6 +27549,18 @@
+@@ -27549,6 +27549,24 @@
                             "type" : "string",
                             "typetext" : "<string>"
                          },
@@ -16,14 +16,19 @@
 +                           "type" : "string",
 +                           "typetext" : "<string>"
 +                        },
++                        "freenas_use_ssl" : {
++                           "description" : "FreeNAS API access via SSL",
++                           "optional" : 1,
++                           "type" : "boolean",
++                           "typetext" : "<boolean>"
++                        },
                          "content" : {
                             "description" : "Allowed content types.\n\nNOTE: the value 'rootdir' is used for Containers, and value 'images' for VMs.\n",
                             "format" : "pve-storage-content-list",
-@@ -27895,6 +27907,18 @@
-                      "optional" : 1,
+@@ -27896,6 +27914,24 @@
                       "type" : "string",
                       "typetext" : "<string>"
-+                  },
+                   },
 +                  "freenas_user" : {
 +                     "description" : "FreeNAS user for API calls",
 +                     "optional" : 1,
@@ -35,6 +40,13 @@
 +                     "optional" : 1,
 +                     "type" : "string",
 +                     "typetext" : "<string>"
-                   },
++                  },
++                  "freenas_use_ssl" : {
++                     "description" : "FreeNAS API access via SSL",
++                     "optional" : 1,
++                     "type" : "boolean",
++                     "typetext" : "<boolean>"
++                  },
                    "content" : {
                       "description" : "Allowed content types.\n\nNOTE: the value 'rootdir' is used for Containers, and value 'images' for VMs.\n",
+                      "format" : "pve-storage-content-list",

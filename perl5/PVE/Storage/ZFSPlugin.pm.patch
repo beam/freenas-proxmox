@@ -35,7 +35,7 @@
          } elsif ($scfg->{iscsiprovider} eq 'istgt') {
              $msg = PVE::Storage::LunCmd::Istgt::run_lun_command($scfg, $timeout, $method, @params);
          } elsif ($scfg->{iscsiprovider} eq 'iet') {
-@@ -173,6 +178,14 @@
+@@ -173,6 +178,18 @@
  	    description => "iscsi provider",
  	    type => 'string',
  	},
@@ -47,15 +47,20 @@
 +	    description => "FreeNAS API Password",
 +	    type => 'string',
 +	},
++	freenas_use_ssl => {
++	    description => "FreeNAS API access via SSL",
++	    type => 'boolean',
++	},
  	# this will disable write caching on comstar and istgt.
  	# it is not implemented for iet. iet blockio always operates with
  	# writethrough caching when not in readonly mode
-@@ -204,6 +217,8 @@
+@@ -204,6 +221,9 @@
  	sparse => { optional => 1 },
  	comstar_hg => { optional => 1 },
  	comstar_tg => { optional => 1 },
 +	freenas_user => { optional => 1 },
 +	freenas_password => { optional => 1 },
++	freenas_use_ssl => { optional => 1 },
  	content => { optional => 1 },
  	bwlimit => { optional => 1 },
      };

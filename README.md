@@ -22,6 +22,8 @@ Please be aware that this enhancment uses the FreeNAS APIs and NOT the ssh/scp l
 1. Execute the following at a console command prompt to active the above
     ```bash
     systemctl restart pvedaemon
+    systemctl restart pveproxy
+    systemctl restart pvestatd
     ```
 
 1. Refresh the Proxmox GUI in your browser to load the new Javascript code. 
