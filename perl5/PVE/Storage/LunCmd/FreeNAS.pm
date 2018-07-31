@@ -52,6 +52,9 @@ sub run_lun_command {
     if($method eq "list_view") {
         return run_list_view($scfg, $timeout, $method, @params);
     }
+    if($method eq "list_extent") {
+        return run_list_extent($scfg, $timeout, $method, @params);
+    }
     if($method eq "list_lu") {
         return run_list_lu($scfg, $timeout, $method, "name", @params);
     }
@@ -104,6 +107,29 @@ sub run_list_lu {
     }
     if(!defined($result)) {
       syslog("info","FreeNAS::list_lu($object):$result_value_type : lun not found");
+    }
+
+    return $result;
+}
+
+#
+#
+#
+sub run_list_extent {
+    my ($scfg, $timeout, $method, @params) = @_;
+    my $object = $params[0];
+    my $result = undef;
+
+    my $luns = freenas_list_lu($scfg);
+    foreach my $lun (@$luns) {
+        if ($lun->{'iscsi_target_extent_path'} =~ /^$object$/) {
+            $result = $lun->{'iscsi_target_extent_naa'};
+            syslog("info","FreeNAS::list_extent($object): naa found $result");
+            last;
+        }
+    }
+    if(!defined($result)) {
+      syslog("info","FreeNAS::list_extent($object): naa not found");
     }
 
     return $result;
