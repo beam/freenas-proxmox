@@ -1,17 +1,17 @@
---- /usr/share/pve-docs/api-viewer/apidoc.js.orig	2018-06-04 12:08:17.416780601 +0800
-+++ /usr/share/pve-docs/api-viewer/apidoc.js	2018-06-04 12:07:28.073832212 +0800
-@@ -27549,6 +27549,24 @@
+--- apidoc.js   2018-07-10 06:05:33.000000000 -0400
++++ apidoc.js.new       2018-07-30 22:21:11.479045222 -0400
+@@ -27584,6 +27584,24 @@
                             "type" : "string",
                             "typetext" : "<string>"
                          },
 +                        "freenas_user" : {
-+                           "description" : "FreeNAS user for API calls",
++                           "description" : "FreeNAS user for API access",
 +                           "optional" : 1,
 +                           "type" : "string",
 +                           "typetext" : "<string>"
 +                        },
 +                        "freenas_password" : {
-+                           "description" : "FreeNAS password for API calls",
++                           "description" : "FreeNAS password for API access",
 +                           "optional" : 1,
 +                           "type" : "string",
 +                           "typetext" : "<string>"
@@ -25,18 +25,18 @@
                          "content" : {
                             "description" : "Allowed content types.\n\nNOTE: the value 'rootdir' is used for Containers, and value 'images' for VMs.\n",
                             "format" : "pve-storage-content-list",
-@@ -27896,6 +27914,24 @@
+@@ -27949,6 +27967,24 @@
                       "type" : "string",
                       "typetext" : "<string>"
                    },
 +                  "freenas_user" : {
-+                     "description" : "FreeNAS user for API calls",
++                     "description" : "FreeNAS user for API access",
 +                     "optional" : 1,
 +                     "type" : "string",
 +                     "typetext" : "<string>"
 +                  },
 +                  "freenas_password" : {
-+                     "description" : "FreeNAS password for API calls",
++                     "description" : "FreeNAS password for API access",
 +                     "optional" : 1,
 +                     "type" : "string",
 +                     "typetext" : "<string>"
