@@ -1,66 +1,66 @@
---- pvemanagerlib.js    2018-07-10 08:46:32.000000000 -0400
-+++ pvemanagerlib.js.new        2018-07-30 22:19:23.207915760 -0400
+--- pvemanagerlib.js	2018-07-10 08:46:32.000000000 -0400
++++ pvemanagerlib.js.new	2018-07-30 22:19:23.207915760 -0400
 @@ -5379,6 +5379,7 @@
      alias: ['widget.pveiScsiProviderSelector'],
      comboItems: [
-        ['comstar', 'Comstar'],
-+       ['freenas', 'FreeNAS-API'],
-        [ 'istgt', 'istgt'],
-        [ 'iet', 'IET']
+ 	['comstar', 'Comstar'],
++	['freenas', 'FreeNAS-API'],
+ 	[ 'istgt', 'istgt'],
+ 	[ 'iet', 'IET']
      ]
 @@ -27361,6 +27362,30 @@
-                value: '',
-                fieldLabel: gettext('Target group'),
-                allowBlank: true
-+           },
-+           {
-+               xtype: me.isCreate ? 'textfield' : 'displayfield',
-+               name: 'freenas_user',
-+               value: '',
-+               hidden: me.iscsiprovider !== "freenas",
-+               fieldLabel: gettext('FreeNAS User'),
-+               allowBlank: true
-+           },
-+           {
-+               xtype: me.isCreate ? 'textfield' : 'displayfield',
-+               name: 'freenas_password',
-+               value: '',
-+               hidden: me.iscsiprovider !== "freenas",
-+               fieldLabel: gettext('FreeNAS Password'),
-+               allowBlank: true
-+           },
-+           {
-+               xtype: 'proxmoxcheckbox',
-+               name: 'freenas_use_ssl',
-+               checked: false,
-+               uncheckedValue: 0,
-+               hidden: me.iscsiprovider !== "freenas",
-+               fieldLabel: gettext('FreeNAS API use SSL')
-            }
-        ];
-
+ 		value: '',
+ 		fieldLabel: gettext('Target group'),
+ 		allowBlank: true
++	    },
++	    {
++		xtype: me.isCreate ? 'textfield' : 'displayfield',
++		name: 'freenas_user',
++		value: '',
++		hidden: me.iscsiprovider !== "freenas",
++		fieldLabel: gettext('FreeNAS User'),
++		allowBlank: true
++	    },
++	    {
++		xtype: me.isCreate ? 'textfield' : 'displayfield',
++		name: 'freenas_password',
++		value: '',
++		hidden: me.iscsiprovider !== "freenas",
++		fieldLabel: gettext('FreeNAS Password'),
++		allowBlank: true
++	    },
++	    {
++		xtype: 'proxmoxcheckbox',
++		name: 'freenas_use_ssl',
++		checked: false,
++		uncheckedValue: 0,
++		hidden: me.iscsiprovider !== "freenas",
++		fieldLabel: gettext('FreeNAS API use SSL')
+ 	    }
+ 	];
+ 
 @@ -27370,7 +27395,23 @@
-                name: 'iscsiprovider',
-                value: 'comstar',
-                fieldLabel: gettext('iSCSI Provider'),
--               allowBlank: false
-+               allowBlank: false,
-+               listeners: {
-+                       change: function(f, value) {
-+                               if (value === "freenas") {
-+                                       me.down('field[name=freenas_user]').setHidden(false);
-+                                       me.down('field[name=freenas_password]').setHidden(false);
-+                                       me.down('field[name=freenas_use_ssl]').setHidden(false);
-+                               } else {
-+                                       me.down('field[name=freenas_user]').setHidden(true);
-+                                       me.down('field[name=freenas_user]').setValue('');
-+                                       me.down('field[name=freenas_password]').setHidden(true);
-+                                       me.down('field[name=freenas_password]').setValue('');
-+                                       me.down('field[name=freenas_use_ssl]').setHidden(true);
-+                                       me.down('field[name=freenas_use_ssl]').setValue(false);
-+                               }
-+                       }
-+               }
-            },
-            {
-                xtype: 'proxmoxcheckbox',
+ 		name: 'iscsiprovider',
+ 		value: 'comstar',
+ 		fieldLabel: gettext('iSCSI Provider'),
+-		allowBlank: false
++		allowBlank: false,
++		listeners: {
++			change: function(f, value) {
++				if (value === "freenas") {
++					me.down('field[name=freenas_user]').setHidden(false);
++					me.down('field[name=freenas_password]').setHidden(false);
++					me.down('field[name=freenas_use_ssl]').setHidden(false);
++				} else {
++					me.down('field[name=freenas_user]').setHidden(true);
++					me.down('field[name=freenas_user]').setValue('');
++					me.down('field[name=freenas_password]').setHidden(true);
++					me.down('field[name=freenas_password]').setValue('');
++					me.down('field[name=freenas_use_ssl]').setHidden(true);
++					me.down('field[name=freenas_use_ssl]').setValue(false);
++				}
++			}
++		}
+ 	    },
+ 	    {
+ 		xtype: 'proxmoxcheckbox',
