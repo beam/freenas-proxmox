@@ -26,10 +26,8 @@ sub get_base {
 sub run_lun_command {
     my ($scfg, $timeout, $method, @params) = @_;
 
-    # TODO : Move configuration of the storage
-    if(!defined($scfg->{'freenas_user'})) {
-        $scfg->{'freenas_user'} = 'root';
-        $scfg->{'freenas_password'} = '*** password ***';
+    if(!defined($scfg->{'freenas_user'}) || !defined($scfg->{'freenas_password'})) {
+        die "Undefined freenas_user and/or freenas_password.";
     }
 
     syslog("info","FreeNAS::lun_command : $method(@params)");
@@ -106,7 +104,7 @@ sub run_list_lu {
         }
     }
     if(!defined($result)) {
-      syslog("info","FreeNAS::list_lu($object):$result_value_type : lun not found");
+        syslog("info","FreeNAS::list_lu($object):$result_value_type : lun not found");
     }
 
     return $result;
@@ -128,8 +126,8 @@ sub run_list_extent {
             last;
         }
     }
-    if(!defined($result)) {
-      syslog("info","FreeNAS::list_extent($object): naa not found");
+    if (!defined($result)) {
+        syslog("info","FreeNAS::list_extent($object): naa not found");
     }
 
     return $result;
@@ -231,19 +229,17 @@ sub run_delete_lu {
 sub freenas_api_call {
     my ($scfg, $method, $path, $data) = @_;
     my $client = undef;
-    my $scheme = 'http';
+    my $scheme = $scfg->{freenas_use_ssl} ? "https" : "http";
 
     $client = REST::Client->new();
-    if ($scfg->{freenas_use_ssl}) {
-        $scheme = 'https';
-    }
-    $client->setHost($scheme . '://'.  $scfg->{portal});
+    $client->setHost($scheme . '://' . $scfg->{portal});
     $client->addHeader('Content-Type'  , 'application/json');
-    $client->addHeader('Authorization' , 'Basic ' . encode_base64(  $scfg->{freenas_user} . ':' .  $scfg->{freenas_password}));
-    # don't verify SSL certs
-    $client->getUseragent()->ssl_opts(verify_hostname => 0);
-    $client->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE );
-
+    $client->addHeader('Authorization' , 'Basic ' . encode_base64($scfg->{freenas_user} . ':' . $scfg->{freenas_password}));
+    # If using SSL, don't verify SSL certs
+    if ($scfg->{freenas_use_ssl}) {
+        $client->getUseragent()->ssl_opts(verify_hostname => 0);
+        $client->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
+    }
     if ($method eq 'GET') {
         $client->GET($path);
     }
@@ -295,12 +291,12 @@ sub freenas_iscsi_get_extent {
 
     my $code = $client->responseCode();
     if ($code == 200) {
-      my $result = decode_json($client->responseContent());
-      syslog("info","FreeNAS::API::get_extent : sucessfull");
-      return $result;
+        my $result = decode_json($client->responseContent());
+        syslog("info","FreeNAS::API::get_extent : sucessfull");
+        return $result;
     } else {
-      freenas_api_log_error($client, "get_extent");
-      return undef;
+        freenas_api_log_error($client, "get_extent");
+        return undef;
     }
 }
 
@@ -518,8 +514,8 @@ sub freenas_get_first_available_lunid {
 
     # find the first hole, if not, give the +1 of the last lun
     foreach my $lun (@sorted_luns) {
-  	    last if $lun != $lun_id;
-  	    $lun_id = $lun_id + 1;
+        last if $lun != $lun_id;
+        $lun_id = $lun_id + 1;
     }
 
     syslog("info", "FreeNAS::API::freenas_get_first_available_lunid : return $lun_id");
