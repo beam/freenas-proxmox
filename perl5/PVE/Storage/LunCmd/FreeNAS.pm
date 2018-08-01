@@ -198,8 +198,8 @@ sub run_delete_lu {
     my $target2extents = freenas_iscsi_get_target_to_extent($scfg);
 
     foreach my $item (@$target2extents) {
-        if($item->{'iscsi_target'} == $target_id            &&
-           $item->{'iscsi_lunid'}  == $lun->{'iscsi_lunid'} &&
+        if($item->{'iscsi_target'} == $target_id &&
+           $item->{'iscsi_lunid'} == $lun->{'iscsi_lunid'} &&
            $item->{'iscsi_extent'} == $lun->{'id'}) {
 
             $link = $item;
@@ -230,6 +230,7 @@ sub freenas_api_call {
     my ($scfg, $method, $path, $data) = @_;
     my $client = undef;
     my $scheme = $scfg->{freenas_use_ssl} ? "https" : "http";
+    my $apiping = '/api/v1.0/system/version/';
 
     $client = REST::Client->new();
     $client->setHost($scheme . '://' . $scfg->{portal});
@@ -239,6 +240,12 @@ sub freenas_api_call {
     if ($scfg->{freenas_use_ssl}) {
         $client->getUseragent()->ssl_opts(verify_hostname => 0);
         $client->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
+    }
+    # Check if the API is working via the selected scheme
+    my $code = $client->request('GET', $apiping)->responseCode();
+    if ($code != 200) {
+        freenas_api_log_error($client, "freenas_api_call");
+        die "Unable to connect to the FreeNAS API service at '" . $scfg->{portal} . "' using '" . $scheme . "' protocol";
     }
     if ($method eq 'GET') {
         $client->GET($path);
