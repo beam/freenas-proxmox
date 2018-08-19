@@ -1,6 +1,6 @@
---- apidoc.js   2018-07-10 06:05:33.000000000 -0400
-+++ apidoc.js.new       2018-07-30 22:21:11.479045222 -0400
-@@ -27584,6 +27584,24 @@
+--- apidoc.js.orig	2018-08-19 10:18:11.715767285 -0400
++++ apidoc.js.new	2018-08-19 10:17:09.364282178 -0400
+@@ -27584,6 +27584,31 @@
                             "type" : "string",
                             "typetext" : "<string>"
                          },
@@ -22,13 +22,21 @@
 +                           "type" : "boolean",
 +                           "typetext" : "<boolean>"
 +                        },
++                        "freenas_apiv4_host" : {
++                           "description" : "FreeNAS API Host via IPv4",
++                           "format" : "address",
++                           "optional" : 1,
++                           "type" : "string",
++                           "typetext" : "<string>"
++                        },
                          "content" : {
                             "description" : "Allowed content types.\n\nNOTE: the value 'rootdir' is used for Containers, and value 'images' for VMs.\n",
                             "format" : "pve-storage-content-list",
-@@ -27949,6 +27967,24 @@
+@@ -27948,6 +27973,31 @@
+                      "optional" : 1,
                       "type" : "string",
                       "typetext" : "<string>"
-                   },
++                  },
 +                  "freenas_user" : {
 +                     "description" : "FreeNAS user for API access",
 +                     "optional" : 1,
@@ -47,6 +55,12 @@
 +                     "type" : "boolean",
 +                     "typetext" : "<boolean>"
 +                  },
++                  "freenas_apiv4_host" : {
++                     "description" : "FreeNAS API Host via IPv4",
++                     "format" : "address",
++                     "optional" : 1,
++                     "type" : "string",
++                     "typetext" : "<string>"
+                   },
                    "content" : {
                       "description" : "Allowed content types.\n\nNOTE: the value 'rootdir' is used for Containers, and value 'images' for VMs.\n",
-                      "format" : "pve-storage-content-list",

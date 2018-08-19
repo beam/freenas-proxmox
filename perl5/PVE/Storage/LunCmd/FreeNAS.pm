@@ -230,10 +230,11 @@ sub freenas_api_call {
     my ($scfg, $method, $path, $data) = @_;
     my $client = undef;
     my $scheme = $scfg->{freenas_use_ssl} ? "https" : "http";
+    my $apihost = defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal};
     my $apiping = '/api/v1.0/system/version/';
 
     $client = REST::Client->new();
-    $client->setHost($scheme . '://' . $scfg->{portal});
+    $client->setHost($scheme . '://' . $apihost);
     $client->addHeader('Content-Type'  , 'application/json');
     $client->addHeader('Authorization' , 'Basic ' . encode_base64($scfg->{freenas_user} . ':' . $scfg->{freenas_password}));
     # If using SSL, don't verify SSL certs
@@ -241,12 +242,13 @@ sub freenas_api_call {
         $client->getUseragent()->ssl_opts(verify_hostname => 0);
         $client->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
     }
-    # Check if the API is working via the selected scheme
+    # Check if the APIs are accessable via the selected host and scheme
     my $code = $client->request('GET', $apiping)->responseCode();
     if ($code != 200) {
         freenas_api_log_error($client, "freenas_api_call");
-        die "Unable to connect to the FreeNAS API service at '" . $scfg->{portal} . "' using '" . $scheme . "' protocol";
+        die "Unable to connect to the FreeNAS API service at '" . $apihost . "' using the '" . $scheme . "' protocol";
     }
+    syslog("info","FreeNAS::api_call : setup : sucessfull");
     if ($method eq 'GET') {
         $client->GET($path);
     }
