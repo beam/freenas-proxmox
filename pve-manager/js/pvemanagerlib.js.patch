@@ -1,85 +1,99 @@
---- pvemanagerlib.js.orig	2018-07-30 23:13:28.045035059 -0400
-+++ pvemanagerlib.js.new	2018-08-19 10:42:58.494724196 -0400
-@@ -5379,6 +5379,7 @@
-     alias: ['widget.pveiScsiProviderSelector'],
-     comboItems: [
- 	['comstar', 'Comstar'],
-+	['freenas', 'FreeNAS-API'],
- 	[ 'istgt', 'istgt'],
- 	[ 'iet', 'IET']
-     ]
-@@ -27361,7 +27362,23 @@
+--- pvemanagerlib-5.2-9.js	2018-10-16 07:17:21.915593478 -0400
++++ pvemanagerlib.js	2018-10-16 07:24:32.280291338 -0400
+@@ -28574,6 +28574,7 @@
+ 	data: {
+ 	    isLIO: false,
+ 	    isComstar: true,
++	    isFreeNAS: false,
+ 	    hasWriteCacheOption: true
+ 	}
+     },
+@@ -28586,10 +28587,18 @@
+ 	    }
+ 	},
+ 	changeISCSIProvider: function(f, newVal, oldVal) {
++	    var me = this;
+ 	    var vm = this.getViewModel();
+ 	    vm.set('isLIO', newVal === 'LIO');
+ 	    vm.set('isComstar', newVal === 'comstar');
+-	    vm.set('hasWriteCacheOption', newVal === 'comstar' || newVal === 'istgt');
++	    vm.set('isFreeNAS', newVal === 'freenas');
++	    vm.set('hasWriteCacheOption', newVal === 'comstar' || newVal === 'freenas' || newVal === 'istgt');
++	    if (newVal !== 'freenas') {
++		me.lookupReference('freenas_use_ssl_field').setValue(false);
++		me.lookupReference('freenas_apiv4_host_field').setValue('');
++		me.lookupReference('freenas_user_field').setValue('');
++		me.lookupReference('freenas_password_field').setValue('');
++	    }
+ 	}
+     },
+ 
+@@ -28648,8 +28657,28 @@
+ 		name: 'comstar_tg',
  		value: '',
  		fieldLabel: gettext('Target group'),
+-		bind: me.isCreate ? { disabled: '{!isComstar}' } : { hidden: '{!isComstar}' },
++		bind: me.isCreate ? { hidden: '{!isComstar}' } : { hidden: '{!isComstar}' },
  		allowBlank: true
--	    }
 +	    },
 +	    {
 +		xtype: 'proxmoxcheckbox',
 +		name: 'freenas_use_ssl',
++		reference: 'freenas_use_ssl_field',
++		inputId: 'freenas_use_ssl_field',
 +		checked: false,
++		bind: me.isCreate ? { hidden: '{!isFreeNAS}' } : { hidden: '{!isFreeNAS}' },
 +		uncheckedValue: 0,
-+		hidden: me.iscsiprovider !== "freenas",
-+		fieldLabel: gettext('FreeNAS API use SSL')
++		fieldLabel: gettext('API use SSL')
 +	    },
 +	    {
 +		xtype: me.isCreate ? 'textfield' : 'displayfield',
 +		name: 'freenas_user',
++		reference: 'freenas_user_field',
++		inputId: 'freenas_user_field',
 +		value: '',
-+		hidden: me.iscsiprovider !== "freenas",
-+		fieldLabel: gettext('FreeNAS User'),
-+		allowBlank: true
-+	    },
++		fieldLabel: gettext('API Username'),
++		bind: me.isCreate ? { hidden: '{!isFreeNAS}' } : { hidden: '{!isFreeNAS}' },
++		allowBlank: me.isFreeNAS ? false : true
+ 	    }
  	];
  
- 	me.column2 = [
-@@ -27370,7 +27387,26 @@
- 		name: 'iscsiprovider',
- 		value: 'comstar',
- 		fieldLabel: gettext('iSCSI Provider'),
--		allowBlank: false
-+		allowBlank: false,
-+		listeners: {
-+			change: function(f, value) {
-+				if (value === "freenas") {
-+					me.down('field[name=freenas_use_ssl]').setHidden(false);
-+					me.down('field[name=freenas_apiv4_host]').setHidden(false);
-+					me.down('field[name=freenas_user]').setHidden(false);
-+					me.down('field[name=freenas_password]').setHidden(false);
-+				} else {
-+					me.down('field[name=freenas_use_ssl]').setHidden(true);
-+					me.down('field[name=freenas_use_ssl]').setValue(false);
-+					me.down('field[name=freenas_apiv4_host]').setHidden(true);
-+					me.down('field[name=freenas_apiv4_host]').setValue(false);
-+					me.down('field[name=freenas_user]').setHidden(true);
-+					me.down('field[name=freenas_user]').setValue('');
-+					me.down('field[name=freenas_password]').setHidden(true);
-+					me.down('field[name=freenas_password]').setValue('');
-+				}
-+			}
-+		}
- 	    },
- 	    {
- 		xtype: 'proxmoxcheckbox',
-@@ -27392,6 +27428,22 @@
+@@ -28680,7 +28709,7 @@
+ 		xtype: me.isCreate ? 'textfield' : 'displayfield',
+ 		name: 'comstar_hg',
  		value: '',
+-		bind: me.isCreate ? { disabled: '{!isComstar}' } : { hidden: '{!isComstar}' },
++		bind: me.isCreate ? { hidden: '{!isComstar}' } : { hidden: '{!isComstar}' },
  		fieldLabel: gettext('Host group'),
  		allowBlank: true
+ 	    },
+@@ -28688,9 +28717,27 @@
+ 		xtype: me.isCreate ? 'textfield' : 'displayfield',
+ 		name: 'lio_tpg',
+ 		value: '',
+-		bind: me.isCreate ? { disabled: '{!isLIO}' } : { hidden: '{!isLIO}' },
+-		allowBlank: false,
+-		fieldLabel: gettext('Target portal group')
++		bind: me.isCreate ? { hidden: '{!isLIO}' } : { hidden: '{!isLIO}' },
++		fieldLabel: gettext('Target portal group'),
++		allowBlank: true
 +	    },
 +	    {
 +		xtype: me.isCreate ? 'textfield' : 'displayfield',
 +		name: 'freenas_apiv4_host',
++		reference: 'freenas_apiv4_host_field',
 +		value: '',
-+		hidden: me.iscsiprovider !== "freenas",
++		bind: me.isCreate ? { hidden: '{!isFreeNAS}' } : { hidden: '{!isFreeNAS}' },
 +		fieldLabel: gettext('API IPv4 Host'),
 +		allowBlank: true
 +	    },
 +	    {
 +		xtype: me.isCreate ? 'textfield' : 'displayfield',
 +		name: 'freenas_password',
++		reference: 'freenas_password_field',
 +		value: '',
-+		hidden: me.iscsiprovider !== "freenas",
-+		fieldLabel: gettext('FreeNAS Password'),
++		bind: me.isCreate ? { hidden: '{!isFreeNAS}' } : { hidden: '{!isFreeNAS}' },
++		fieldLabel: gettext('API Password'),
 +		allowBlank: true
  	    }
  	];

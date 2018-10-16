@@ -2,7 +2,7 @@
 
 Please be aware that this enhancment uses the FreeNAS APIs and NOT the ssh/scp like the other interface provides.
 
-1. First use the following commands to patch the needed files forthe FreeNAS Interface
+1. First use the following commands to patch the needed files for the FreeNAS Interface
     ```bash
     patch -b /usr/share/pve-manager/js/pvemanagerlib.js < pve-manager/js/pvemanagerlib.js.patch
     patch -b /usr/share/perl5/PVE/Storage/ZFSPlugin.pm < perl5/PVE/Storage/ZFSPlugin.pm.patch
