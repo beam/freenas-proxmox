@@ -1,6 +1,14 @@
 --- pvemanagerlib-5.2-9.js	2018-10-16 07:17:21.915593478 -0400
-+++ pvemanagerlib.js	2018-10-16 07:24:32.280291338 -0400
-@@ -28574,6 +28574,7 @@
++++ pvemanagerlib.js	2018-10-21 00:46:12.524172694 -0400
+@@ -5597,6 +5597,7 @@
+     alias: ['widget.pveiScsiProviderSelector'],
+     comboItems: [
+ 	['comstar', 'Comstar'],
++	['freenas', 'FreeNAS-API'],
+ 	[ 'istgt', 'istgt'],
+ 	[ 'iet', 'IET'],
+ 	[ 'LIO', 'LIO']
+@@ -28574,6 +28575,7 @@
  	data: {
  	    isLIO: false,
  	    isComstar: true,
@@ -8,7 +16,7 @@
  	    hasWriteCacheOption: true
  	}
      },
-@@ -28586,10 +28587,18 @@
+@@ -28586,10 +28588,18 @@
  	    }
  	},
  	changeISCSIProvider: function(f, newVal, oldVal) {
@@ -28,7 +36,7 @@
  	}
      },
  
-@@ -28648,8 +28657,28 @@
+@@ -28648,8 +28658,28 @@
  		name: 'comstar_tg',
  		value: '',
  		fieldLabel: gettext('Target group'),
@@ -58,7 +66,7 @@
  	    }
  	];
  
-@@ -28680,7 +28709,7 @@
+@@ -28680,7 +28710,7 @@
  		xtype: me.isCreate ? 'textfield' : 'displayfield',
  		name: 'comstar_hg',
  		value: '',
@@ -67,7 +75,7 @@
  		fieldLabel: gettext('Host group'),
  		allowBlank: true
  	    },
-@@ -28688,9 +28717,27 @@
+@@ -28688,9 +28718,27 @@
  		xtype: me.isCreate ? 'textfield' : 'displayfield',
  		name: 'lio_tpg',
  		value: '',
