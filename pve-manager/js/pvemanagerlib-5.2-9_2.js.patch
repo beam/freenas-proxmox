@@ -1,5 +1,5 @@
---- pvemanagerlib-5.2-10.js	2018-10-23 07:18:18.058603386 -0400
-+++ pvemanagerlib.js	2018-10-23 15:29:52.573563883 -0400
+--- pvemanagerlib-5.2-9.js	2018-10-16 07:17:21.915593478 -0400
++++ pvemanagerlib.js	2018-10-21 21:52:20.781740237 -0400
 @@ -5597,6 +5597,7 @@
      alias: ['widget.pveiScsiProviderSelector'],
      comboItems: [
@@ -8,7 +8,7 @@
  	[ 'istgt', 'istgt'],
  	[ 'iet', 'IET'],
  	[ 'LIO', 'LIO']
-@@ -28583,6 +28584,7 @@
+@@ -28574,6 +28575,7 @@
  	data: {
  	    isLIO: false,
  	    isComstar: true,
@@ -16,7 +16,7 @@
  	    hasWriteCacheOption: true
  	}
      },
-@@ -28595,10 +28597,19 @@
+@@ -28586,10 +28588,19 @@
  	    }
  	},
  	changeISCSIProvider: function(f, newVal, oldVal) {
@@ -37,7 +37,7 @@
  	}
      },
  
-@@ -28616,6 +28627,7 @@
+@@ -28607,6 +28618,7 @@
      },
  
      setValues: function diff(values) {
@@ -45,7 +45,7 @@
  	values.writecache = values.nowritecache ? 0 : 1;
  	this.callParent([values]);
      },
-@@ -28632,7 +28644,7 @@
+@@ -28623,7 +28635,7 @@
  		allowBlank: false
  	    },
  	    {
@@ -54,7 +54,7 @@
  		name: 'pool',
  		value: '',
  		fieldLabel: gettext('Pool'),
-@@ -28646,7 +28658,7 @@
+@@ -28637,7 +28649,7 @@
  		allowBlank: false
  	    },
  	    {
@@ -63,7 +63,7 @@
  		name: 'target',
  		value: '',
  		fieldLabel: gettext('Target'),
-@@ -28657,8 +28669,28 @@
+@@ -28648,8 +28660,28 @@
  		name: 'comstar_tg',
  		value: '',
  		fieldLabel: gettext('Target group'),
@@ -93,7 +93,7 @@
  	    }
  	];
  
-@@ -28689,7 +28721,7 @@
+@@ -28680,7 +28712,7 @@
  		xtype: me.isCreate ? 'textfield' : 'displayfield',
  		name: 'comstar_hg',
  		value: '',
@@ -102,11 +102,13 @@
  		fieldLabel: gettext('Host group'),
  		allowBlank: true
  	    },
-@@ -28697,9 +28729,60 @@
+@@ -28688,9 +28720,61 @@
  		xtype: me.isCreate ? 'textfield' : 'displayfield',
  		name: 'lio_tpg',
  		value: '',
 -		bind: me.isCreate ? { disabled: '{!isLIO}' } : { hidden: '{!isLIO}' },
+-		allowBlank: false,
+-		fieldLabel: gettext('Target portal group')
 +		bind: { hidden: '{!isLIO}' },
 +		fieldLabel: gettext('Target portal group'),
 +		allowBlank: true
@@ -116,9 +118,10 @@
 +		name: 'freenas_apiv4_host',
 +		reference: 'freenas_apiv4_host_field',
 +		value: '',
-+		editable: true,
-+		allowBlank: true,
-+		emptyText: Proxmox.Utils.noneText,
++                editable: true,
++                deleteEmpty: true,
++                allowBlank: true,
++                emptyText: Proxmox.Utils.noneText,
 +		bind: { hidden: '{!isFreeNAS}' },
 +		fieldLabel: gettext('API IPv4 Host'),
 +		allowBlank: true
@@ -127,41 +130,40 @@
 +		xtype: 'proxmoxtextfield',
 +		name: 'freenas_password',
 +		reference: 'freenas_password_field',
-+		inputType: me.isCreate ? '' : 'password',
-+		value: '',
-+		editable: true,
-+		deleteEmpty: true,
-+		allowBlank: false,
-+		emptyText: Proxmox.Utils.noneText,
++                inputType: me.isCreate ? '' : 'password',
++                value: '',
++                editable: true,
++                deleteEmpty: true,
++                allowBlank: false,
++                emptyText: Proxmox.Utils.noneText,
 +		bind: { hidden: '{!isFreeNAS}' },
 +		fieldLabel: gettext('API Password'),
-+		change: function(f, value) {
-+		    if (f.rendered) {
-+			f.up().down('field[name=freenas_confirmpw]').validate();
-+		    }
-+		}
++                change: function(f, value) {
++                    if (f.rendered) {
++                        f.up().down('field[name=freenas_confirmpw]').validate();
++                    }
++                }
 +	    },
 +	    {
 +		xtype: 'proxmoxtextfield',
 +		name: 'freenas_confirmpw',
 +		reference: 'freenas_confirmpw_field',
-+		inputType: me.isCreate ? '' : 'password',
-+		value: '',
-+		editable: true,
-+		deleteEmpty: true,
- 		allowBlank: false,
--		fieldLabel: gettext('Target portal group')
++                inputType: me.isCreate ? '' : 'password',
++                value: '',
++                editable: true,
++                deleteEmpty: true,
++                allowBlank: false,
 +		submitValue: false,
-+		emptyText: Proxmox.Utils.noneText,
++                emptyText: Proxmox.Utils.noneText,
 +		bind: { hidden: '{!isFreeNAS}' },
 +		fieldLabel: gettext('Confirm Password'),
-+		validator: function(value) {
-+		    var pw = this.up().down('field[name=freenas_password]').getValue();
-+		    if (pw !== value) {
-+			return "Passwords do not match!";
-+		    }
-+		    return true;
-+		}
++                validator: function(value) {
++                    var pw = this.up().down('field[name=freenas_password]').getValue();
++                    if (pw !== value) {
++                        return "Passwords do not match!";
++                    }
++                    return true;
++                }
  	    }
  	];
  
