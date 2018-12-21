@@ -1,5 +1,5 @@
---- pvemanagerlib-5.3-5.js	2018-12-03 06:13:25.000000000 -0500
-+++ pvemanagerlib.js	2018-12-12 07:51:20.483169368 -0500
+--- pvemanagerlib-5.3-5.js	2018-12-21 12:34:35.727962756 -0500
++++ pvemanagerlib.js	2018-12-21 12:43:02.370462786 -0500
 @@ -5854,6 +5854,7 @@
      alias: ['widget.pveiScsiProviderSelector'],
      comboItems: [
@@ -54,7 +54,12 @@
  		name: 'pool',
  		value: '',
  		fieldLabel: gettext('Pool'),
-@@ -30046,7 +30058,7 @@
+@@ -30042,11 +30054,11 @@
+ 		xtype: me.isCreate ? 'textfield' : 'displayfield',
+ 		name: 'blocksize',
+ 		value: '4k',
+-		fieldLabel: gettext('Block Size'),
++		fieldLabel: gettext('ZFS Block Size'),
  		allowBlank: false
  	    },
  	    {
