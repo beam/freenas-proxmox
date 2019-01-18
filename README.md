@@ -1,6 +1,6 @@
 # FreeNAS ZFS over iSCSI interface
 
-Please be aware that this plugin uses the FreeNAS APIs and NOT the ssh/scp like the other interfaces use, but...
+Please be aware that this plugin uses the FreeNAS APIs and NOT the ssh/scp interface like the other plugins use, but...
 
 You will still need to configure the SSH connector for listing the ZFS Pools because this is currently being done in a Proxmox module (ZFSPoolPlugin.pm). To configure this please follow the steps at https://pve.proxmox.com/wiki/Storage:_ZFS_over_iSCSI that have to do with SSH between Proxmox VE and FreeNAS. The code segment should start out ‘mkdir /etc/pve/priv/zfs’.
 
