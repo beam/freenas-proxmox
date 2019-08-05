@@ -1,5 +1,5 @@
---- pvemanagerlib.js.orig	2019-07-26 04:14:56.000000000 -0400
-+++ pvemanagerlib.js	2019-08-05 16:02:38.484913553 -0400
+--- pvemanagerlib.js.orig	2019-07-09 03:52:19.000000000 -0400
++++ pvemanagerlib.js	2019-07-16 13:59:37.658409977 -0400
 @@ -6094,6 +6094,7 @@
      alias: ['widget.pveiScsiProviderSelector'],
      comboItems: [
@@ -8,7 +8,7 @@
  	[ 'istgt', 'istgt'],
  	[ 'iet', 'IET'],
  	[ 'LIO', 'LIO']
-@@ -31722,6 +31723,7 @@
+@@ -31700,6 +31701,7 @@
  	data: {
  	    isLIO: false,
  	    isComstar: true,
@@ -16,7 +16,7 @@
  	    hasWriteCacheOption: true
  	}
      },
-@@ -31734,10 +31736,26 @@
+@@ -31712,10 +31714,26 @@
  	    }
  	},
  	changeISCSIProvider: function(f, newVal, oldVal) {
@@ -44,7 +44,7 @@
  	}
      },
  
-@@ -31755,6 +31773,7 @@
+@@ -31733,6 +31751,7 @@
      },
  
      setValues: function diff(values) {
@@ -52,7 +52,7 @@
  	values.writecache = values.nowritecache ? 0 : 1;
  	this.callParent([values]);
      },
-@@ -31771,7 +31790,7 @@
+@@ -31749,7 +31768,7 @@
  		allowBlank: false
  	    },
  	    {
@@ -61,7 +61,7 @@
  		name: 'pool',
  		value: '',
  		fieldLabel: gettext('Pool'),
-@@ -31781,11 +31800,11 @@
+@@ -31759,11 +31778,11 @@
  		xtype: me.isCreate ? 'textfield' : 'displayfield',
  		name: 'blocksize',
  		value: '4k',
@@ -75,7 +75,7 @@
  		name: 'target',
  		value: '',
  		fieldLabel: gettext('Target'),
-@@ -31796,8 +31815,33 @@
+@@ -31774,8 +31793,33 @@
  		name: 'comstar_tg',
  		value: '',
  		fieldLabel: gettext('Target group'),
@@ -110,7 +110,7 @@
  	    }
  	];
  
-@@ -31828,7 +31872,9 @@
+@@ -31806,7 +31850,9 @@
  		xtype: me.isCreate ? 'textfield' : 'displayfield',
  		name: 'comstar_hg',
  		value: '',
@@ -121,7 +121,7 @@
  		fieldLabel: gettext('Host group'),
  		allowBlank: true
  	    },
-@@ -31836,9 +31882,62 @@
+@@ -31814,9 +31860,62 @@
  		xtype: me.isCreate ? 'textfield' : 'displayfield',
  		name: 'lio_tpg',
  		value: '',
