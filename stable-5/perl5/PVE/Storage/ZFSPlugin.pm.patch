@@ -1,5 +1,5 @@
---- ZFSPlugin.pm.orig	2019-09-23 12:17:37.000000000 -0400
-+++ ZFSPlugin.pm	2019-10-13 09:31:58.780554103 -0400
+--- ZFSPlugin.pm.orig	2019-06-25 06:54:50.000000000 -0400
++++ ZFSPlugin.pm	2019-07-16 13:36:48.817831174 -0400
 @@ -10,6 +10,7 @@
  
  use base qw(PVE::Storage::ZFSPoolPlugin);
@@ -42,7 +42,7 @@
          } elsif ($scfg->{iscsiprovider} eq 'istgt') {
              $msg = PVE::Storage::LunCmd::Istgt::run_lun_command($scfg, $timeout, $method, @params);
          } elsif ($scfg->{iscsiprovider} eq 'iet') {
-@@ -162,6 +168,15 @@
+@@ -160,6 +166,15 @@
      return $class->zfs_request($scfg, undef, 'list_view', $guid);
  }
  
@@ -58,7 +58,7 @@
  # Configuration
  
  sub type {
-@@ -180,6 +195,24 @@
+@@ -178,6 +193,24 @@
  	    description => "iscsi provider",
  	    type => 'string',
  	},
@@ -83,7 +83,7 @@
  	# this will disable write caching on comstar and istgt.
  	# it is not implemented for iet. iet blockio always operates with
  	# writethrough caching when not in readonly mode
-@@ -207,14 +240,18 @@
+@@ -205,14 +238,18 @@
  	nodes => { optional => 1 },
  	disable => { optional => 1 },
  	portal => { fixed => 1 },
@@ -104,7 +104,7 @@
  	lio_tpg => { optional => 1 },
  	content => { optional => 1 },
  	bwlimit => { optional => 1 },
-@@ -239,6 +276,40 @@
+@@ -237,6 +274,40 @@
  
      my $path = "iscsi://$portal/$target/$lun";
  
