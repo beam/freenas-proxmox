@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 --- ZFSPlugin.pm.orig	2019-09-23 12:17:37.000000000 -0400
 +++ ZFSPlugin.pm	2019-10-13 09:31:58.780554103 -0400
+=======
+--- ZFSPlugin.pm.orig	2019-09-03 04:24:37.000000000 -0400
++++ ZFSPlugin.pm	2019-09-22 13:54:51.570048336 -0400
+>>>>>>> branch 'master' of https://github.com/TheGrandWazoo/freenas-proxmox.git
 @@ -10,6 +10,7 @@
  
  use base qw(PVE::Storage::ZFSPoolPlugin);
