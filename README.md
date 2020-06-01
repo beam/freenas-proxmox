@@ -1,40 +1,78 @@
 # FreeNAS ZFS over iSCSI interface  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TCLNEMBUYQUXN&source=url)
 
+## Thank you for all that have donated to the project
+    Marc Hodler
+    Keizerin Pty Ltd
+    Mark Elkins
+
+I have created a debian repo that holds a package to install scripts into the Proxmox VE system that will automatically do all the necessary patching when one or any combo of the following files are changed in the Proxmox VE stream:
+```
+/usr/share/pve-manager/js/pvemanagerlib.js    <- From package pve-manager
+/usr/share/pve-docs/api-viewer/apidoc.js      <- From package pve-docs
+/usr/share/perl5/PVE/Storage/ZFSPlugin.pm     <- From package libpve-storage-perl
+
+It will also install the /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm (The FreeNAS API plugin), git and librest-client-perl
+```
+
+If you wish, you may remove the directory 'freenas-proxmox' where your system is currently
+housing the repo and then issue the following to have a clean system before installing the
+package.
+
+On Proxmox 5
+```bash
+apt install --reinstall pve-manager pve-docs libpve-storage-perl
+```
+
+On Proxmox 6
+```bash
+apt reinstall pve-manager pve-docs libpve-storage-perl
+```
+
+Issue the following to install the repo and get your Proxmox VE updating the FreeNAS patches automatically:
+```bash
+wget http://repo.ksatechnologies.com/debian/pve/ksatechnologies-release.gpg -O /etc/apt/trusted.gpg.d/ksatechnologies-repo.gpg
+echo "deb http://repo.ksatechnologies.com/debian/pve stable freenas-proxmox" > /etc/apt/sources.list.d/ksatechnologies-repo.list
+```
+
+### I will be using a 'testing' repo to develop the new phase of the FreNAS plugin.
+### This next phase will introduce the following...
+* Auto detection of the Proxmox VE version
+* Auto detection of the FreeNAS version so it will use the V1 or V2 API's or you can select it manually via the Proxmox VE FreeNAS modal
+* Remove the need for SSH keys and use the API
+  * This is tricky because the format needs to be that of 'zfs list'
+  * which is not part of the plugins but that of the backend Proxmox VE system
+  * and the API's do a bunch of JSON stuff.
+
+### If you'd like, you may also issue the following commands now or later to use the 'testing' repo.
+### Just comment the 'stable' line and uncomment the 'testing' line in 
+### /etc/apt/sources.list.d/ksatechnologies-repo.list to use. 'testing' is disabled be default.
+```bash
+echo "" >> /etc/apt/sources.list.d/ksatechnologies-repo.list
+echo "# deb http://repo.ksatechnologies.com/debian/pve testing freenas-proxmox" >> /etc/apt/sources.list.d/ksatechnologies-repo.list
+```
+
+Then issue the following to install the package
+```
+apt update
+apt install freenas-proxmox
+```
+
+Then just do your regular upgrade via apt to your system; the package will automatically
+issue all commands to patch the files.
+```bash
+apt update
+apt [full|dist]-upgrade
+```
+
+If you wish not to use the package you may remove it at anytime with
+```
+apt purge freenas-proxmox
+```
+This will place you back to a normal and unpatched Proxmox VE install.
 
 Please be aware that this plugin uses the FreeNAS APIs and NOT the ssh/scp interface like the other plugins use, but...
 
 You will still need to configure the SSH connector for listing the ZFS Pools because this is currently being done in a Proxmox module (ZFSPoolPlugin.pm). To configure this please follow the steps at https://pve.proxmox.com/wiki/Storage:_ZFS_over_iSCSI that have to do with SSH between Proxmox VE and FreeNAS. The code segment should start out �mkdir /etc/pve/priv/zfs�.
-
-I am currently in development to remove this depencancy from the ZFSPoolPlugin.pm so it is done in the FreeNAS.pm.
-
-1. Install the perl REST Client and git packages from the repository.
-    ```bash
-    apt-get install librest-client-perl git
-    ```
-
-1. Issue the following (You can be in any directory you'd like but I use /root)
-    ```bash
-    git clone https://github.com/TheGrandWazoo/freenas-proxmox.git
-    ```
-
-1. Next issue the following commands to patch the needed files for the FreeNAS Interface
-    ```bash
-    patch -b /usr/share/pve-manager/js/pvemanagerlib.js < pve-manager/js/pvemanagerlib.js.patch
-    patch -b /usr/share/perl5/PVE/Storage/ZFSPlugin.pm < perl5/PVE/Storage/ZFSPlugin.pm.patch
-    patch -b /usr/share/pve-docs/api-viewer/apidoc.js < pve-docs/api-viewer/apidoc.js.patch
-    ```
-
-1. Use the following command to copy the needed file for the FreeNAS connector.
-    ```bash
-    cp perl5/PVE/Storage/LunCmd/FreeNAS.pm /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm
-    ```
-
-1. Execute the following at a console command prompt to active the above
-    ```bash
-    systemctl restart pvedaemon
-    systemctl restart pveproxy
-    systemctl restart pvestatd
-    ```
 
 1. Remember to follow the instructions mentioned above for the SSH keys.
 
