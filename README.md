@@ -10,9 +10,8 @@ I have created a debian repo that holds a package to install scripts into the Pr
 /usr/share/pve-manager/js/pvemanagerlib.js    <- From package pve-manager
 /usr/share/pve-docs/api-viewer/apidoc.js      <- From package pve-docs
 /usr/share/perl5/PVE/Storage/ZFSPlugin.pm     <- From package libpve-storage-perl
-
-It will also install the /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm (The FreeNAS API plugin), git and librest-client-perl
 ```
+It will also install the /usr/share/perl5/PVE/Storage/LunCmd/FreeNAS.pm (The FreeNAS API plugin), git and librest-client-perl
 
 If you wish, you may remove the directory 'freenas-proxmox' where your system is currently
 housing the repo and then issue the following to have a clean system before installing the
@@ -34,18 +33,16 @@ wget http://repo.ksatechnologies.com/debian/pve/ksatechnologies-release.gpg -O /
 echo "deb http://repo.ksatechnologies.com/debian/pve stable freenas-proxmox" > /etc/apt/sources.list.d/ksatechnologies-repo.list
 ```
 
-### I will be using a 'testing' repo to develop the new phase of the FreNAS plugin.
-### This next phase will introduce the following...
+### I will be using a 'testing' repo to develop the new phase of the Proxmox VE FreeNAS plugin.
+#### This next phase will introduce the following...
 * Auto detection of the Proxmox VE version
 * Auto detection of the FreeNAS version so it will use the V1 or V2 API's or you can select it manually via the Proxmox VE FreeNAS modal
 * Remove the need for SSH keys and use the API
-  * This is tricky because the format needs to be that of 'zfs list'
-  * which is not part of the plugins but that of the backend Proxmox VE system
-  * and the API's do a bunch of JSON stuff.
+  * This is tricky because the format needs to be that of the output of'zfs list' which is not part of the LunCmd but that of the backend Proxmox VE system and the API's do a bunch of JSON stuff.
 
-### If you'd like, you may also issue the following commands now or later to use the 'testing' repo.
-### Just comment the 'stable' line and uncomment the 'testing' line in 
-### /etc/apt/sources.list.d/ksatechnologies-repo.list to use. 'testing' is disabled be default.
+#### If you'd like, you may also issue the following commands now or later to use the 'testing' repo.
+#### Just comment the 'stable' line and uncomment the 'testing' line in 
+#### /etc/apt/sources.list.d/ksatechnologies-repo.list to use. 'testing' is disabled be default.
 ```bash
 echo "" >> /etc/apt/sources.list.d/ksatechnologies-repo.list
 echo "# deb http://repo.ksatechnologies.com/debian/pve testing freenas-proxmox" >> /etc/apt/sources.list.d/ksatechnologies-repo.list
@@ -66,7 +63,7 @@ apt [full|dist]-upgrade
 
 If you wish not to use the package you may remove it at anytime with
 ```
-apt purge freenas-proxmox
+apt [remove|purge] freenas-proxmox
 ```
 This will place you back to a normal and unpatched Proxmox VE install.
 
