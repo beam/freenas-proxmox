@@ -233,9 +233,7 @@ Preform an HTTP GET to the resource specified. Takes an optional hashref of cust
 
 sub GET {
     my $self = shift;
-    my $url = shift;
-    my $headers = shift;
-    return $self->request('GET', $url, undef, $headers);
+    return $self->request('GET', @_);
 }
 
 =head3 PUT ($url, [$body_content, %$headers] )
@@ -279,9 +277,7 @@ Preform an HTTP DELETE to the resource specified. Takes an optional hashref of c
 
 sub DELETE {
     my $self = shift;
-    my $url = shift;
-    my $headers = shift;
-    return $self->request('DELETE', $url, undef, $headers);
+    return $self->request('DELETE', @_);
 }
 
 =head3 OPTIONS ( $url, [%$headers] )
