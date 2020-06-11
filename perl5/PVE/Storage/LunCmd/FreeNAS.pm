@@ -12,65 +12,97 @@ use JSON;
 
 # Max LUNS per target on the iSCSI server
 my $MAX_LUNS = 255;
+my $freenas_rest_connection = undef;
+my $freenas_global_config = undef;
+my $dev_prefix = "";
+my $product_name = undef;
 
 # FreeNAS API Definitions
-my $freenas_api_version = "v1.0";
-my $freenas_api_methods = undef;
-my $freenas_api_variables = undef;
-my $freenas_api_version_methods = {
+my $freenas_api_version = "v1.0";    # Default to v1.0 of the API's
+my $freenas_api_methods = undef;     # API Methods Nested HASH Ref
+my $freenas_api_variables = undef;   # API Variable Nested HASH Ref
+
+# 
+my $freenas_api_version_matrix = {
     "v1.0" => {
-        "config"       => "/api/v1.0/services/iscsi/globalconfiguration/",
-        "target"       => "/api/v1.0/services/iscsi/target/",
-        "extent"       => "/api/v1.0/services/iscsi/extent/",
-        "targetextent" => "/api/v1.0/services/iscsi/targettoextent/",
+        "methods" => {
+            "config"       => {
+                "resource" => "/api/v1.0/services/iscsi/globalconfiguration/",
+            },
+            "target"       => {
+                "resource" => "/api/v1.0/services/iscsi/target/",
+            },
+            "extent"       => {
+                "resource"  => "/api/v1.0/services/iscsi/extent/",
+                "post_body" => {
+                    "iscsi_target_extent_type" => "Disk",
+                    "iscsi_target_extent_name" => "\$name",
+                    "iscsi_target_extent_disk" => "\$device",
+                },
+            },
+            "targetextent" => {
+                "resource"  => "/api/v1.0/services/iscsi/targettoextent/",
+                "post_body" => {
+                    "iscsi_target" => "\$target_id",
+                    "iscsi_extent" => "\$extent_id",
+                    "iscsi_lunid" => "\$lun_id",
+                },
+            },
+        },
+        "variables" => {
+            "basename"     => "iscsi_basename",
+            "lunid"        => "iscsi_lunid",
+            "extentid"     => "iscsi_extentid",
+            "targetid"     => "iscsi_targetid",
+            "extentpath"   => "iscsi_target_extent_path",
+            "extentnaa"    => "iscsi_target_extent_naa",
+            "targetname"   => "iscsi_target_name",
+        }
     },
     "v2.0" => {
-        "config"       => "/api/v2.0/iscsi/global",
-        "target"       => "/api/v2.0/iscsi/target/",
-        "extent"       => "/api/v2.0/iscsi/extent/",
-        "targetextent" => "/api/v2.0/iscsi/targetextent/",
+        "methods" => {
+            "config"       => {
+                "resource" => "/api/v2.0/iscsi/global",
+            },
+            "target"       => {
+                "resource" => "/api/v2.0/iscsi/target/",
+            },
+            "extent"       => {
+                "resource"    => "/api/v2.0/iscsi/extent/",
+                "delete_body" => {
+                    "remove" => \1,
+                    "force"  => \1,
+                },
+                "post_body"   => {
+                    "type"   => "DISK",
+                    "name"   => "\$name",
+                    "disk"   => "\$device",
+                },	
+            },
+            "targetextent" => {
+                "resource"    => "/api/v2.0/iscsi/targetextent/",
+                "delete_body" => {
+                    "force"  => \1,
+                },
+                "post_body"   => {
+                    "target"  => "\$target_id",
+                    "extent"  => "\$extent_id",
+                    "lunid"   => "\$lun_id",
+                },
+            },
+        },
+        "variables" => {
+            "basename"     => "basename",
+            "lunid"        => "lunid",
+            "extentid"     => "extent",
+            "targetid"     => "target",
+            "extentpath"   => "path",
+            "extentnaa"    => "naa",
+            "targetname"   => "name",
+        },
     },
 };
 
-#
-#
-#
-my $freenas_api_version_variables = {
-    "v1.0" => {
-        "basename"   => "iscsi_basename",
-        "lunid"      => "iscsi_lunid",
-        "extentid"   => "iscsi_extentid",
-        "targetid"   => "iscsi_targetid",
-        "extentpath" => "iscsi_target_extent_path",
-        "extentnaa"  => "iscsi_target_extent_naa",
-        "targetname" => "iscsi_target_name",
-    },
-    "v2.0" => {
-        "basename"   => "basename",
-        "lunid"      => "lunid",
-        "extentid"   => "extent",
-        "targetid"   => "target",
-        "extentpath" => "path",
-        "extentnaa"  => "naa",
-        "targetname" => "name",
-    },
-};
-
-#
-#
-#
-my $freenas_apiv2_parameters = {
-    "target" => {
-        "none" => undef,
-    },
-    "extent" => {
-        "force" => "true",
-    },
-    "targetextent" => {
-        "remove" => "true",
-        "force" => "true",
-    },
-};
 
 #
 #
@@ -78,6 +110,7 @@ my $freenas_apiv2_parameters = {
 sub get_base {
     return '/dev/zvol';
 }
+
 
 #
 #
@@ -162,13 +195,12 @@ sub run_list_lu {
     my $object = $params[0];
     syslog("info", (caller(0))[3] . " : called with (method=$method; result_value_type=$result_value_type; object=$object)");
 
-    my $adddev    = ($freenas_api_version eq "v2.0") ? "/dev/" : "";
     my $result = undef;
     my $luns = freenas_list_lu($scfg);
     foreach my $lun (@$luns) {
         syslog("info", (caller(0))[3] . " : Verifing '$lun->{$freenas_api_variables->{'extentpath'}}' and '$object'");
-        if ($adddev . $lun->{$freenas_api_variables->{'extentpath'}} eq $object) {
-            $result = $result_value_type eq "lun-id" ? $lun->{$freenas_api_variables->{'lunid'}} : $adddev . $lun->{$freenas_api_variables->{'extentpath'}};
+        if ($dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}} eq $object) {
+            $result = $result_value_type eq "lun-id" ? $lun->{$freenas_api_variables->{'lunid'}} : $dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}};
             syslog("info",(caller(0))[3] . "($object) '$result_value_type' found $result");
             last;
         }
@@ -189,12 +221,11 @@ sub run_list_extent {
 
     syslog("info", (caller(0))[3] . " : called with (method=$method; object=$object)");
 
-    my $adddev    = ($freenas_api_version eq "v2.0") ? "/dev/" : "";
     my $result = undef;
     my $luns = freenas_list_lu($scfg);
     foreach my $lun (@$luns) {
         syslog("info", (caller(0))[3] . " : Verifing '$lun->{$freenas_api_variables->{'extentpath'}}' and '$object'");
-        if ($adddev . $lun->{$freenas_api_variables->{'extentpath'}} eq $object) {
+        if ($dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}} eq $object) {
             $result = $lun->{$freenas_api_variables->{'extentnaa'}};
             syslog("info","FreeNAS::list_extent($object): naa found $result");
             last;
@@ -248,12 +279,11 @@ sub run_delete_lu {
 
     syslog("info", (caller(0))[3] . " : called with (method=$method; param[0]=$lun_path)");
 
-    my $adddev    = ($freenas_api_version eq "v2.0") ? "/dev/" : "";
     my $luns      = freenas_list_lu($scfg);
     my $lun       = undef;
     my $link      = undef;
     foreach my $item (@$luns) {
-       if($adddev . $item->{ $freenas_api_variables->{'extentpath'}} eq $lun_path) {
+       if($dev_prefix . $item->{ $freenas_api_variables->{'extentpath'}} eq $lun_path) {
            $lun = $item;
            last;
        }
@@ -294,6 +324,33 @@ sub run_delete_lu {
     return "";
 }
 
+
+sub freenas_api_connect {
+    my ($scfg) = @_;
+
+    syslog("info", (caller(0))[3] . " : called");
+
+    my $scheme = $scfg->{freenas_use_ssl} ? "https" : "http";
+    my $apihost = defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal};
+    my $apiping = '/api/v1.0/system/version/';
+
+    $freenas_rest_connection = REST::Client->new();
+    $freenas_rest_connection->setHost($scheme . '://' . $apihost);
+    $freenas_rest_connection->addHeader('Content-Type', 'application/json');
+    $freenas_rest_connection->addHeader('Authorization', 'Basic ' . encode_base64($scfg->{freenas_user} . ':' . $scfg->{freenas_password}));
+    # If using SSL, don't verify SSL certs
+    if ($scfg->{freenas_use_ssl}) {
+        $freenas_rest_connection->getUseragent()->ssl_opts(verify_hostname => 0);
+        $freenas_rest_connection->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
+    }
+    # Check if the APIs are accessable via the selected host and scheme
+    my $code = $freenas_rest_connection->request('GET', $apiping)->responseCode();
+    if ($code != 200) {
+        freenas_api_log_error($freenas_rest_connection, "freenas_api_call");
+        die "Unable to connect to the FreeNAS API service at '" . $apihost . "' using the '" . $scheme . "' protocol";
+    }
+}
+
 #
 # Check to see what FreeNAS version we are running and set
 # the FreeNAS.pm to use the correct API version of FreeNAS
@@ -303,79 +360,59 @@ sub freenas_api_check {
 
     syslog("info", (caller(0))[3] . " : called");
 
-    my $client = undef;
-    my $scheme = $scfg->{freenas_use_ssl} ? "https" : "http";
-    my $apihost = defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal};
-    my $apiping = '/api/v1.0/system/version/';
-
-    $client = REST::Client->new();
-    $client->setHost($scheme . '://' . $apihost);
-    $client->addHeader('Content-Type', 'application/json');
-    $client->addHeader('Authorization', 'Basic ' . encode_base64($scfg->{freenas_user} . ':' . $scfg->{freenas_password}));
-    # If using SSL, don't verify SSL certs
-    if ($scfg->{freenas_use_ssl}) {
-        $client->getUseragent()->ssl_opts(verify_hostname => 0);
-        $client->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
+    if (! defined $freenas_rest_connection) {
+        freenas_api_connect($scfg);
+        my $result = decode_json($freenas_rest_connection->responseContent());
+        syslog("info", (caller(0))[3] . " : successful : Server version: " . $result->{'fullversion'});
+        $result->{'fullversion'} =~ s/^(\w+)\-(\d+)\.(\d+)\-U(\d+)\.?(\d?)//;
+        my $freenas_version = sprintf("%02d%02d%02d%02d", $2, $3, $4, $5);
+        $product_name = $1;
+        syslog("info", (caller(0))[3] . " : ". $product_name . " Unformatted Version: " . $freenas_version);
+        if ($freenas_version >= 11030100) {
+            $freenas_api_version = "v2.0";
+            $dev_prefix = "/dev/";
+        }
+    } else {
+        syslog("info", (caller(0))[3] . " : REST Client already initialized");
     }
-    # Check if the APIs are accessable via the selected host and scheme
-    my $code = $client->request('GET', $apiping)->responseCode();
-    if ($code != 200) {
-        freenas_api_log_error($client, "freenas_api_call");
-        die "Unable to connect to the FreeNAS API service at '" . $apihost . "' using the '" . $scheme . "' protocol";
-    }
-    my $result = decode_json($client->responseContent());
-    syslog("info", (caller(0))[3] . " : successful : Server version: " . $result->{'fullversion'});
-    $result->{'fullversion'} =~ s/^(\w+)\-(\d+)\.(\d+)\-U(\d+)\.?(\d?)//;
-    my $freenas_version = sprintf("%02d%02d%02d%02d", $2, $3, $4, $5);
-    syslog("info", (caller(0))[3] . " : ". $1 . " Unformatted Version: " . $freenas_version);
-    if ($freenas_version >= 11030100) {
-        $freenas_api_version = "v2.0";
-    }
-    syslog("info", (caller(0))[3] . " : Using " . $1 ." API version " . $freenas_api_version);
-    $freenas_api_methods   = $freenas_api_version_methods->{$freenas_api_version};
-    $freenas_api_variables = $freenas_api_version_variables->{$freenas_api_version};
+    syslog("info", (caller(0))[3] . " : Using " . $product_name ." API version " . $freenas_api_version);
+    $freenas_api_methods   = $freenas_api_version_matrix->{$freenas_api_version}->{'methods'};
+    $freenas_api_variables = $freenas_api_version_matrix->{$freenas_api_version}->{'variables'};
+    $freenas_global_config = (!defined($freenas_global_config)) ? freenas_iscsi_get_globalconfiguration($scfg) : $freenas_global_config;
+    return;
 }
 
+
 #
-### FREENAS API CALLING ###
+### FREENAS API CALLING ROUTINE ###
 #
 sub freenas_api_call {
     my ($scfg, $method, $path, $data) = @_;
-    my $client = undef;
-    my $scheme = $scfg->{freenas_use_ssl} ? "https" : "http";
-    my $apihost = defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal};
 
-    $client = REST::Client->new();
-    $client->setHost($scheme . '://' . $apihost);
-    $client->addHeader('Content-Type'  , 'application/json');
-    $client->addHeader('Authorization' , 'Basic ' . encode_base64($scfg->{freenas_user} . ':' . $scfg->{freenas_password}));
-    # If using SSL, don't verify SSL certs
-    if ($scfg->{freenas_use_ssl}) {
-        $client->getUseragent()->ssl_opts(verify_hostname => 0);
-        $client->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
+    syslog("info", (caller(0))[3] . " : called");
+
+    $method = uc($method);
+    if (! $method =~ /^(?>GET|DELETE|POST)$/) {
+        syslog("info", (caller(0))[3] . " : Invalid HTTP RESTful service method '$method'");
+        die "Invalid HTTP RESTful service method '$method' used.";
+    }
+
+    if (! defined $freenas_rest_connection) {
+        freenas_api_check($scfg);
     }
     my $json_data = (defined $data) ? encode_json($data) : undef;
-    if ($method eq 'GET') {
-        $client->GET($path, $json_data);
-    }
-    if ($method eq 'DELETE') {
-        $client->DELETE($path, $json_data);
-    }
-    if ($method eq 'POST') {
-        $client->POST($path, $json_data);
-    }
+    $freenas_rest_connection->$method($path, $json_data);
     syslog("info", (caller(0))[3] . " : successful");
-
-    return $client
+    return;
 }
 
 #
 # Writes the Response and Content to SysLog 
 #
 sub freenas_api_log_error {
-    my ($client, $method) = @_;
-    syslog("info","[ERROR]FreeNAS::API::" . $method . " : Response code: " . $client->responseCode());
-    syslog("info","[ERROR]FreeNAS::API::" . $method . " : Response content: " . $client->responseContent());
+    my ($method) = @_;
+    syslog("info","[ERROR]FreeNAS::API::" . $method . " : Response code: " . $freenas_rest_connection->responseCode());
+    syslog("info","[ERROR]FreeNAS::API::" . $method . " : Response content: " . $freenas_rest_connection->responseContent());
     return 1;
 }
 
@@ -385,15 +422,15 @@ sub freenas_api_log_error {
 sub freenas_iscsi_get_globalconfiguration {
     my ($scfg) = @_;
     syslog("info", (caller(0))[3] . " : called");
-    my $client = freenas_api_call($scfg, 'GET', "$freenas_api_methods->{'config'}", undef);
-    my $code = $client->responseCode();
+    freenas_api_call($scfg, 'GET', $freenas_api_methods->{'config'}->{'resource'}, $freenas_api_methods->{'config'}->{'get'});
+    my $code = $freenas_rest_connection->responseCode();
 
     if ($code == 200) {
-        my $result = decode_json($client->responseContent());
+        my $result = decode_json($freenas_rest_connection->responseContent());
         syslog("info", (caller(0))[3] . " : target_basename=" . $result->{$freenas_api_variables->{'basename'}});
         return $result;
     } else {
-        freenas_api_log_error($client, "get_globalconfig");
+        freenas_api_log_error("get_globalconfig");
         return undef;
     }
 }
@@ -407,14 +444,14 @@ sub freenas_iscsi_get_extent {
 
     syslog("info", (caller(0))[3] . " : called");
 
-    my $client = freenas_api_call($scfg, 'GET', $freenas_api_methods->{'extent'} . "?limit=0", undef);
-    my $code = $client->responseCode();
+    freenas_api_call($scfg, 'GET', $freenas_api_methods->{'extent'}->{'resource'} . "?limit=0", $freenas_api_methods->{'extent'}->{'get'});
+    my $code = $freenas_rest_connection->responseCode();
     if ($code == 200) {
-        my $result = decode_json($client->responseContent());
+        my $result = decode_json($freenas_rest_connection->responseContent());
         syslog("info", (caller(0))[3] . " : successful");
         return $result;
     } else {
-        freenas_api_log_error($client, "get_extent");
+        freenas_api_log_error("get_extent");
         return undef;
     }
 }
@@ -438,27 +475,19 @@ sub freenas_iscsi_create_extent {
     my $device = $lun_path;
     $device =~ s/^\/dev\///; # strip /dev/
 
-    my $request = {
-        "v1.0" => {
-            "iscsi_target_extent_type"      => "Disk",
-            "iscsi_target_extent_name"      => $name,
-            "iscsi_target_extent_disk"      => $device,
-        },
-        "v2.0" => {
-            "type"      => "DISK",
-            "name"      => $name,
-            "disk"      => $device,
-        },
-    };
+    my $post_body = {};
+    while ((my $key, my $value) = each %{$freenas_api_methods->{'extent'}->{'post_body'}}) {
+        $post_body->{$key} = ($value =~ /^\$.+$/) ? eval $value : $value;
+    }
 
-    my $client = freenas_api_call($scfg, 'POST', $freenas_api_methods->{'extent'}, $request->{$freenas_api_version});
-    my $code = $client->responseCode();
+    freenas_api_call($scfg, 'POST', $freenas_api_methods->{'extent'}->{'resource'}, $post_body);
+    my $code = $freenas_rest_connection->responseCode();
     if ($code == 200 || $code == 201) {
-        my $result = decode_json($client->responseContent());
+        my $result = decode_json($freenas_rest_connection->responseContent());
         syslog("info", "FreeNAS::API::create_extent(lun_path=" . $result->{$freenas_api_variables->{'extentpath'}} . ") : successful");
         return $result;
     } else {
-        freenas_api_log_error($client, "create_extent");
+        freenas_api_log_error("create_extent");
         return undef;
     }
 }
@@ -472,21 +501,15 @@ sub freenas_iscsi_create_extent {
 #
 sub freenas_iscsi_remove_extent {
     my ($scfg, $extent_id) = @_;
-    my $request = {
-        "v2.0" => {
-            "remove" => \1,
-            "force"  => \1,
-        },
-    };
 
     syslog("info", (caller(0))[3] . " : called with (extent_id=$extent_id)");
-    my $client = freenas_api_call($scfg, 'DELETE', $freenas_api_methods->{'extent'} . (($freenas_api_version eq "v2.0") ? "id/" : "") . "$extent_id/", $request->{$freenas_api_version});
-    my $code = $client->responseCode();
+    freenas_api_call($scfg, 'DELETE', $freenas_api_methods->{'extent'}->{'resource'} . (($freenas_api_version eq "v2.0") ? "id/" : "") . "$extent_id/", $freenas_api_methods->{'extent'}->{'delete_body'});
+    my $code = $freenas_rest_connection->responseCode();
     if ($code == 200 || $code == 204) {
         syslog("info", (caller(0))[3] . "(extent_id=$extent_id) : successful");
         return 1;
     } else {
-        freenas_api_log_error($client, "remove_extent");
+        freenas_api_log_error("remove_extent");
         return 0;
     }
 }
@@ -500,14 +523,14 @@ sub freenas_iscsi_get_target {
 
     syslog("info", (caller(0))[3] . " : called");
 
-    my $client = freenas_api_call($scfg, 'GET', $freenas_api_methods->{'target'} . "?limit=0", undef);
-    my $code = $client->responseCode();
+    freenas_api_call($scfg, 'GET', $freenas_api_methods->{'target'}->{'resource'} . "?limit=0", $freenas_api_methods->{'target'}->{'get'});
+    my $code = $freenas_rest_connection->responseCode();
     if ($code == 200) {
-        my $result = decode_json($client->responseContent());
+        my $result = decode_json($freenas_rest_connection->responseContent());
         syslog("info", (caller(0))[3] . " : successful");
         return $result;
     } else {
-        freenas_api_log_error($client, "get_target");
+        freenas_api_log_error("get_target");
         return undef;
     }
 }
@@ -521,10 +544,10 @@ sub freenas_iscsi_get_target_to_extent {
 
     syslog("info", (caller(0))[3] . " : called");
 
-    my $client = freenas_api_call($scfg, 'GET', $freenas_api_methods->{'targetextent'} . "?limit=0", undef);
-    my $code = $client->responseCode();
+    freenas_api_call($scfg, 'GET', $freenas_api_methods->{'targetextent'}->{'resource'} . "?limit=0", $freenas_api_methods->{'targetextent'}->{'get'});
+    my $code = $freenas_rest_connection->responseCode();
     if ($code == 200) {
-        my $result = decode_json($client->responseContent());
+        my $result = decode_json($freenas_rest_connection->responseContent());
         syslog("info", (caller(0))[3] . " : successful");
         # If 'iscsi_lunid' is undef then it is set to 'Auto' in FreeNAS
         # which should be '0' in our eyes.
@@ -537,7 +560,7 @@ sub freenas_iscsi_get_target_to_extent {
         }
         return $result;
     } else {
-        freenas_api_log_error($client, "get_target_to_extent");
+        freenas_api_log_error("get_target_to_extent");
         return undef;
     }
 }
@@ -556,27 +579,19 @@ sub freenas_iscsi_create_target_to_extent {
 
     syslog("info", (caller(0))[3] . " : called with (target_id=$target_id, extent_id=$extent_id, lun_id=$lun_id)");
 
-    my $request = {
-        "v1.0" => {
-            "iscsi_target"  => $target_id,
-            "iscsi_extent"  => $extent_id,
-            "iscsi_lunid"   => $lun_id,
-        },
-        "v2.0" => {
-            "target"  => $target_id,
-            "extent"  => $extent_id,
-            "lunid"   => $lun_id,
-        },
-    };
+    my $post_body = {};
+    while ((my $key, my $value) = each %{$freenas_api_methods->{'targetextent'}->{'post_body'}}) {
+        $post_body->{$key} = ($value =~ /^\$.+$/) ? eval $value : $value;
+    }
 
-    my $client = freenas_api_call($scfg, 'POST', $freenas_api_methods->{'targetextent'}, $request->{$freenas_api_version});
-    my $code = $client->responseCode();
+    freenas_api_call($scfg, 'POST', $freenas_api_methods->{'targetextent'}->{'resource'}, $post_body);
+    my $code = $freenas_rest_connection->responseCode();
     if ($code == 200 || $code == 201) {
-        my $result = decode_json($client->responseContent());
+        my $result = decode_json($freenas_rest_connection->responseContent());
         syslog("info", (caller(0))[3] . "(target_id=$target_id, extent_id=$extent_id, lun_id=$lun_id) : successful");
         return $result;
     } else {
-        freenas_api_log_error($client, "create_target_to_extent");
+        freenas_api_log_error("create_target_to_extent");
         return undef;
     }
 }
@@ -598,13 +613,13 @@ sub freenas_iscsi_remove_target_to_extent {
         return 1;
     }
 
-    my $client = freenas_api_call($scfg, 'DELETE', $freenas_api_methods->{'targetextent'} . (($freenas_api_version eq "v2.0") ? "id/" : "") . "$link_id/", undef);
-    my $code = $client->responseCode();
+    freenas_api_call($scfg, 'DELETE', $freenas_api_methods->{'targetextent'}->{'resource'} . (($freenas_api_version eq "v2.0") ? "id/" : "") . "$link_id/", $freenas_api_methods->{'targetextent'}->{'delete_body'});
+    my $code = $freenas_rest_connection->responseCode();
     if ($code == 200 || $code == 204) {
         syslog("info", (caller(0))[3] . "(link_id=$link_id) : successful");
         return 1;
     } else {
-        freenas_api_log_error($client, "remove_target_to_extent");
+        freenas_api_log_error("remove_target_to_extent");
         return 0;
     }
 }
@@ -687,12 +702,11 @@ sub freenas_get_targetid {
 
     syslog("info", (caller(0))[3] . " : called");
 
-    my $global    = freenas_iscsi_get_globalconfiguration($scfg);
     my $targets   = freenas_iscsi_get_target($scfg);
     my $target_id = undef;
 
     foreach my $target (@$targets) {
-        my $iqn = $global->{$freenas_api_variables->{'basename'}} . ':' . $target->{$freenas_api_variables->{'targetname'}};
+        my $iqn = $freenas_global_config->{$freenas_api_variables->{'basename'}} . ':' . $target->{$freenas_api_variables->{'targetname'}};
         if($iqn eq $scfg->{target}) {
             $target_id = $target->{'id'};
             last;
