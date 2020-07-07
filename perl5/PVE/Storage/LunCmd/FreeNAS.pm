@@ -6,6 +6,8 @@ use Data::Dumper;
 use PVE::SafeSyslog;
 use IO::Socket::SSL;
 
+use LWP::UserAgent;
+use HTTP::Request;
 use REST::Client;
 use MIME::Base64;
 use JSON;
@@ -16,6 +18,8 @@ my $freenas_rest_connection = undef;
 my $freenas_global_config = undef;
 my $dev_prefix = "";
 my $product_name = undef;
+my $apiping = '/api/v1.0/system/version/';
+my $runawayprevent = 0;
 
 # FreeNAS API Definitions
 my $freenas_api_version = "v1.0";    # Default to v1.0 of the API's
@@ -332,9 +336,10 @@ sub freenas_api_connect {
 
     my $scheme = $scfg->{freenas_use_ssl} ? "https" : "http";
     my $apihost = defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal};
-    my $apiping = '/api/v1.0/system/version/';
 
-    $freenas_rest_connection = REST::Client->new();
+    if (! defined $freenas_rest_connection) {
+        $freenas_rest_connection = REST::Client->new();
+    }
     $freenas_rest_connection->setHost($scheme . '://' . $apihost);
     $freenas_rest_connection->addHeader('Content-Type', 'application/json');
     $freenas_rest_connection->addHeader('Authorization', 'Basic ' . encode_base64($scfg->{freenas_user} . ':' . $scfg->{freenas_password}));
@@ -345,10 +350,27 @@ sub freenas_api_connect {
     }
     # Check if the APIs are accessable via the selected host and scheme
     my $code = $freenas_rest_connection->request('GET', $apiping)->responseCode();
-    if ($code != 200) {
+    if ($code == 200) {                # Successful connection
+        syslog("info", (caller(0))[3] . " : REST connection successful to '" . $apihost . "' using the '" . $scheme . "' protocol");
+        $runawayprevent = 0;
+    } elsif ($runawayprevent > 1) {    # Make sure we are not recursion calling.
+        freenas_api_log_error($freenas_rest_connection, "freenas_api_call");
+        die "Loop recursion prevention";
+    } elsif ($code == 302) {           # A 302 from FreeNAS means it doesn't like v1.0 APIs.
+        syslog("info", (caller(0))[3] . " : Changing to v2.0 API's");
+        $runawayprevent++;
+        $apiping =~ s/v1\.0/v2\.0/;
+        freenas_api_connect($scfg);
+    } elsif ($code == 307) {           # A 307 from FreeNAS means rediect http to https.
+        syslog("info", (caller(0))[3] . " : Redirecting to HTTPS protocol");
+        $runawayprevent++;
+        $scfg->{freenas_use_ssl} = 1;
+        freenas_api_connect($scfg);
+    } else {                           # For now, any other code we fail.
         freenas_api_log_error($freenas_rest_connection, "freenas_api_call");
         die "Unable to connect to the FreeNAS API service at '" . $apihost . "' using the '" . $scheme . "' protocol";
     }
+    return;
 }
 
 #
@@ -357,15 +379,22 @@ sub freenas_api_connect {
 #
 sub freenas_api_check {
     my ($scfg, $timeout) = @_;
+    my $result = {};
 
     syslog("info", (caller(0))[3] . " : called");
 
     if (! defined $freenas_rest_connection) {
         freenas_api_connect($scfg);
-        my $result = decode_json($freenas_rest_connection->responseContent());
+        eval {
+            $result = decode_json($freenas_rest_connection->responseContent());
+        };
+        if ($@) {
+            $result->{'fullversion'} = $freenas_rest_connection->responseContent();
+            $result->{'fullversion'} =~ s/^"//g;
+        }
         syslog("info", (caller(0))[3] . " : successful : Server version: " . $result->{'fullversion'});
-        $result->{'fullversion'} =~ s/^(\w+)\-(\d+)\.(\d+)\-U(\d+)\.?(\d?)//;
-        my $freenas_version = sprintf("%02d%02d%02d%02d", $2, $3, $4, $5);
+        $result->{'fullversion'} =~ s/^(\w+)\-(\d+)\.(\d+)\-(?:U|BETA)(\d?)\.?(\d?)//;
+        my $freenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $4 || 0, $5 || 0);
         $product_name = $1;
         syslog("info", (caller(0))[3] . " : ". $product_name . " Unformatted Version: " . $freenas_version);
         if ($freenas_version >= 11030100) {
