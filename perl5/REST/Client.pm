@@ -225,7 +225,7 @@ They can be combined with the response methods, such as:
 
  print $client->GET('/search/?q=foobar')->responseContent();
 
-=head3 GET ( $url, [%$headers] )
+=head3 GET ( $url, [$body_content, %$headers] )
 
 Preform an HTTP GET to the resource specified. Takes an optional hashref of custom request headers.
 
@@ -269,7 +269,7 @@ sub POST {
     return $self->request('POST', @_);
 }
 
-=head3 DELETE ( $url, [%$headers] )
+=head3 DELETE ( $url, [$body_content, %$headers] )
 
 Preform an HTTP DELETE to the resource specified. Takes an optional hashref of custom request headers.
 
