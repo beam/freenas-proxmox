@@ -12,21 +12,23 @@ use REST::Client;
 use MIME::Base64;
 use JSON;
 
-# Max LUNS per target on the iSCSI server
-my $MAX_LUNS = 255;
-my $freenas_rest_connection = undef;
-my $freenas_global_config = undef;
+# Global variable definitions
+my $MAX_LUNS = 255;                        # Max LUNS per target on the iSCSI server
+my $freenas_server_list = undef;           # API connection HashRef using the IP address of the server
+my $freenas_rest_connection = undef;       # Pointer to entry in $freenas_server_list
+my $freenas_global_config_list = undef;    # IQN HashRef using the IP address of the server
+my $freenas_global_config = undef;         # Pointer to entry in $freenas_global_config_list
 my $dev_prefix = "";
 my $product_name = undef;
-my $apiping = '/api/v1.0/system/version/';
-my $runawayprevent = 0;
+my $apiping = '/api/v1.0/system/version/'; # Initial API method for setup
+my $runawayprevent = 0;                    # Recursion prevention variable
 
-# FreeNAS API Definitions
-my $freenas_api_version = "v1.0";    # Default to v1.0 of the API's
-my $freenas_api_methods = undef;     # API Methods Nested HASH Ref
-my $freenas_api_variables = undef;   # API Variable Nested HASH Ref
+# FreeNAS API definitions
+my $freenas_api_version = "v1.0";          # Default to v1.0 of the API's
+my $freenas_api_methods = undef;           # API Methods Nested HASH Ref
+my $freenas_api_variables = undef;         # API Variable Nested HASH Ref
 
-# 
+# FreeNAS/TrueNAS (CORE) API Versioning HashRef Matrix
 my $freenas_api_version_matrix = {
     "v1.0" => {
         "methods" => {
@@ -117,7 +119,7 @@ sub get_base {
 
 
 #
-#
+# Subroutine called from ZFSPlugin.pm
 #
 sub run_lun_command {
     my ($scfg, $timeout, $method, @params) = @_;
@@ -127,8 +129,6 @@ sub run_lun_command {
     if(!defined($scfg->{'freenas_user'}) || !defined($scfg->{'freenas_password'})) {
         die "Undefined freenas_user and/or freenas_password.";
     }
-
-    freenas_api_check($scfg, $timeout);
 
     if($method eq "create_lu") {
         return run_create_lu($scfg, $timeout, $method, @params);
@@ -181,7 +181,7 @@ sub run_modify_lu {
 }
 
 #
-#
+# 
 #
 sub run_list_view {
     my ($scfg, $timeout, $method, @params) = @_;
@@ -337,24 +337,24 @@ sub freenas_api_connect {
     my $scheme = $scfg->{freenas_use_ssl} ? "https" : "http";
     my $apihost = defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal};
 
-    if (! defined $freenas_rest_connection) {
-        $freenas_rest_connection = REST::Client->new();
+    if (! defined $freenas_server_list->{$apihost}) {
+        $freenas_server_list->{$apihost} = REST::Client->new();
     }
-    $freenas_rest_connection->setHost($scheme . '://' . $apihost);
-    $freenas_rest_connection->addHeader('Content-Type', 'application/json');
-    $freenas_rest_connection->addHeader('Authorization', 'Basic ' . encode_base64($scfg->{freenas_user} . ':' . $scfg->{freenas_password}));
+    $freenas_server_list->{$apihost}->setHost($scheme . '://' . $apihost);
+    $freenas_server_list->{$apihost}->addHeader('Content-Type', 'application/json');
+    $freenas_server_list->{$apihost}->addHeader('Authorization', 'Basic ' . encode_base64($scfg->{freenas_user} . ':' . $scfg->{freenas_password}));
     # If using SSL, don't verify SSL certs
     if ($scfg->{freenas_use_ssl}) {
-        $freenas_rest_connection->getUseragent()->ssl_opts(verify_hostname => 0);
-        $freenas_rest_connection->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
+        $freenas_server_list->{$apihost}->getUseragent()->ssl_opts(verify_hostname => 0);
+        $freenas_server_list->{$apihost}->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
     }
     # Check if the APIs are accessable via the selected host and scheme
-    my $code = $freenas_rest_connection->request('GET', $apiping)->responseCode();
+    my $code = $freenas_server_list->{$apihost}->request('GET', $apiping)->responseCode();
     if ($code == 200) {                # Successful connection
         syslog("info", (caller(0))[3] . " : REST connection successful to '" . $apihost . "' using the '" . $scheme . "' protocol");
         $runawayprevent = 0;
     } elsif ($runawayprevent > 1) {    # Make sure we are not recursion calling.
-        freenas_api_log_error($freenas_rest_connection, "freenas_api_call");
+        freenas_api_log_error($freenas_server_list->{$apihost}, "freenas_api_call");
         die "Loop recursion prevention";
     } elsif ($code == 302) {           # A 302 from FreeNAS means it doesn't like v1.0 APIs.
         syslog("info", (caller(0))[3] . " : Changing to v2.0 API's");
@@ -367,9 +367,10 @@ sub freenas_api_connect {
         $scfg->{freenas_use_ssl} = 1;
         freenas_api_connect($scfg);
     } else {                           # For now, any other code we fail.
-        freenas_api_log_error($freenas_rest_connection, "freenas_api_call");
+        freenas_api_log_error($freenas_server_list->{$apihost}, "freenas_api_call");
         die "Unable to connect to the FreeNAS API service at '" . $apihost . "' using the '" . $scheme . "' protocol";
     }
+    $freenas_rest_connection = $freenas_server_list->{$apihost};
     return;
 }
 
@@ -380,10 +381,11 @@ sub freenas_api_connect {
 sub freenas_api_check {
     my ($scfg, $timeout) = @_;
     my $result = {};
+    my $apihost = defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal};
 
     syslog("info", (caller(0))[3] . " : called");
 
-    if (! defined $freenas_rest_connection) {
+    if (! defined $freenas_rest_connection->{$apihost}) {
         freenas_api_connect($scfg);
         eval {
             $result = decode_json($freenas_rest_connection->responseContent());
@@ -407,7 +409,7 @@ sub freenas_api_check {
     syslog("info", (caller(0))[3] . " : Using " . $product_name ." API version " . $freenas_api_version);
     $freenas_api_methods   = $freenas_api_version_matrix->{$freenas_api_version}->{'methods'};
     $freenas_api_variables = $freenas_api_version_matrix->{$freenas_api_version}->{'variables'};
-    $freenas_global_config = (!defined($freenas_global_config)) ? freenas_iscsi_get_globalconfiguration($scfg) : $freenas_global_config;
+    $freenas_global_config = $freenas_global_config_list->{$apihost} = (!defined($freenas_global_config_list->{$apihost})) ? freenas_iscsi_get_globalconfiguration($scfg) : $freenas_global_config_list->{$apihost};
     return;
 }
 
@@ -417,8 +419,9 @@ sub freenas_api_check {
 #
 sub freenas_api_call {
     my ($scfg, $method, $path, $data) = @_;
+    my $apihost = defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal};
 
-    syslog("info", (caller(0))[3] . " : called");
+    syslog("info", (caller(0))[3] . " : called for host '" . $apihost . "'");
 
     $method = uc($method);
     if (! $method =~ /^(?>GET|DELETE|POST)$/) {
@@ -426,9 +429,11 @@ sub freenas_api_call {
         die "Invalid HTTP RESTful service method '$method' used.";
     }
 
-    if (! defined $freenas_rest_connection) {
+    if (! defined $freenas_server_list->{$apihost}) {
         freenas_api_check($scfg);
     }
+    $freenas_rest_connection = $freenas_server_list->{$apihost};
+    $freenas_global_config = $freenas_global_config_list->{$apihost};
     my $json_data = (defined $data) ? encode_json($data) : undef;
     $freenas_rest_connection->$method($path, $json_data);
     syslog("info", (caller(0))[3] . " : successful");
@@ -450,10 +455,11 @@ sub freenas_api_log_error {
 #
 sub freenas_iscsi_get_globalconfiguration {
     my ($scfg) = @_;
+
     syslog("info", (caller(0))[3] . " : called");
+
     freenas_api_call($scfg, 'GET', $freenas_api_methods->{'config'}->{'resource'}, $freenas_api_methods->{'config'}->{'get'});
     my $code = $freenas_rest_connection->responseCode();
-
     if ($code == 200) {
         my $result = decode_json($freenas_rest_connection->responseContent());
         syslog("info", (caller(0))[3] . " : target_basename=" . $result->{$freenas_api_variables->{'basename'}});
