@@ -130,6 +130,10 @@ sub run_lun_command {
         die "Undefined freenas_user and/or freenas_password.";
     }
 
+    if (!defined $freenas_server_list->{defined($scfg->{freenas_apiv4_host}) ? $scfg->{freenas_apiv4_host} : $scfg->{portal}}) {
+        freenas_api_check($scfg);
+    }
+
     if($method eq "create_lu") {
         return run_create_lu($scfg, $timeout, $method, @params);
     }
