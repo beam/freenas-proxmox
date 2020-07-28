@@ -2,7 +2,7 @@
 
 ## Thank you for all that have donated to the project
     Marc Hodler
-    Keizerin Pty Ltd
+    Clevvi Technology
     Mark Elkins
 
 I have created a debian repo that holds a package to install scripts into the Proxmox VE system that will automatically do all the necessary patching when one or any combo of the following files are changed in the Proxmox VE stream:
