@@ -1,9 +1,11 @@
 # FreeNAS ZFS over iSCSI interface  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TCLNEMBUYQUXN&source=url)
 
 ## Thank you for all that have donated to the project
-    Marc Hodler
     Clevvi Technology
-    Mark Elkins
+    Mark Elkins - Reoccuring
+    Marc Hodler
+    Martin Gonzalez
+
 
 I have created a debian repo that holds a package to install scripts into the Proxmox VE system that will automatically do all the necessary patching when one or any combo of the following files are changed in the Proxmox VE stream:
 ```
