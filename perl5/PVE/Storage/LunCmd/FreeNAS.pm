@@ -695,6 +695,7 @@ sub freenas_list_lu {
                         }
                         $node->{$freenas_api_variables->{'lunid'}} .= $iscsi_lunid;
                         push(@luns , $node);
+                        last;
                     }
                 }
             }
