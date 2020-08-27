@@ -358,7 +358,7 @@ sub freenas_api_connect {
         syslog("info", (caller(0))[3] . " : REST connection successful to '" . $apihost . "' using the '" . $scheme . "' protocol");
         $runawayprevent = 0;
     } elsif ($runawayprevent > 1) {    # Make sure we are not recursion calling.
-        freenas_api_log_error($freenas_server_list->{$apihost}, "freenas_api_call");
+        freenas_api_log_error($freenas_server_list->{$apihost});
         die "Loop recursion prevention";
     } elsif ($code == 302) {           # A 302 from FreeNAS means it doesn't like v1.0 APIs.
         syslog("info", (caller(0))[3] . " : Changing to v2.0 API's");
@@ -371,7 +371,7 @@ sub freenas_api_connect {
         $scfg->{freenas_use_ssl} = 1;
         freenas_api_connect($scfg);
     } else {                           # For now, any other code we fail.
-        freenas_api_log_error($freenas_server_list->{$apihost}, "freenas_api_call");
+        freenas_api_log_error($freenas_server_list->{$apihost});
         die "Unable to connect to the FreeNAS API service at '" . $apihost . "' using the '" . $scheme . "' protocol";
     }
     $freenas_rest_connection = $freenas_server_list->{$apihost};
@@ -448,9 +448,10 @@ sub freenas_api_call {
 # Writes the Response and Content to SysLog 
 #
 sub freenas_api_log_error {
-    my ($method) = @_;
-    syslog("info","[ERROR]FreeNAS::API::" . $method . " : Response code: " . $freenas_rest_connection->responseCode());
-    syslog("info","[ERROR]FreeNAS::API::" . $method . " : Response content: " . $freenas_rest_connection->responseContent());
+    my ($rest_connection) = @_;
+    my $connection = ((defined $rest_connection) ? $rest_connection : $freenas_rest_connection);
+    syslog("info","[ERROR]FreeNAS::API::" . (caller(1))[3] . " : Response code: " . $connection->responseCode());
+    syslog("info","[ERROR]FreeNAS::API::" . (caller(1))[3] . " : Response content: " . $connection->responseContent());
     return 1;
 }
 
@@ -469,7 +470,7 @@ sub freenas_iscsi_get_globalconfiguration {
         syslog("info", (caller(0))[3] . " : target_basename=" . $result->{$freenas_api_variables->{'basename'}});
         return $result;
     } else {
-        freenas_api_log_error("get_globalconfig");
+        freenas_api_log_error();
         return undef;
     }
 }
@@ -490,7 +491,7 @@ sub freenas_iscsi_get_extent {
         syslog("info", (caller(0))[3] . " : successful");
         return $result;
     } else {
-        freenas_api_log_error("get_extent");
+        freenas_api_log_error();
         return undef;
     }
 }
@@ -526,7 +527,7 @@ sub freenas_iscsi_create_extent {
         syslog("info", "FreeNAS::API::create_extent(lun_path=" . $result->{$freenas_api_variables->{'extentpath'}} . ") : successful");
         return $result;
     } else {
-        freenas_api_log_error("create_extent");
+        freenas_api_log_error();
         return undef;
     }
 }
@@ -548,7 +549,7 @@ sub freenas_iscsi_remove_extent {
         syslog("info", (caller(0))[3] . "(extent_id=$extent_id) : successful");
         return 1;
     } else {
-        freenas_api_log_error("remove_extent");
+        freenas_api_log_error();
         return 0;
     }
 }
@@ -569,7 +570,7 @@ sub freenas_iscsi_get_target {
         syslog("info", (caller(0))[3] . " : successful");
         return $result;
     } else {
-        freenas_api_log_error("get_target");
+        freenas_api_log_error();
         return undef;
     }
 }
@@ -599,7 +600,7 @@ sub freenas_iscsi_get_target_to_extent {
         }
         return $result;
     } else {
-        freenas_api_log_error("get_target_to_extent");
+        freenas_api_log_error();
         return undef;
     }
 }
@@ -630,7 +631,7 @@ sub freenas_iscsi_create_target_to_extent {
         syslog("info", (caller(0))[3] . "(target_id=$target_id, extent_id=$extent_id, lun_id=$lun_id) : successful");
         return $result;
     } else {
-        freenas_api_log_error("create_target_to_extent");
+        freenas_api_log_error();
         return undef;
     }
 }
@@ -658,7 +659,7 @@ sub freenas_iscsi_remove_target_to_extent {
         syslog("info", (caller(0))[3] . "(link_id=$link_id) : successful");
         return 1;
     } else {
-        freenas_api_log_error("remove_target_to_extent");
+        freenas_api_log_error();
         return 0;
     }
 }
