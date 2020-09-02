@@ -2,8 +2,6 @@ name: Dispatch build of the freenas-proxmox plugin package
 
 on:
   push:
-    branches:
-      - master
 
 jobs:
   dispatch:

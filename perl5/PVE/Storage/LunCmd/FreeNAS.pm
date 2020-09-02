@@ -410,7 +410,7 @@ sub freenas_api_check {
     } else {
         syslog("info", (caller(0))[3] . " : REST Client already initialized");
     }
-    syslog("info", (caller(0))[3] . " : Using " . $product_name ." API version " . $freenas_api_version);
+    syslog("info", (caller(0))[3] . " : Using " . $product_name . " API version " . $freenas_api_version);
     $freenas_api_methods   = $freenas_api_version_matrix->{$freenas_api_version}->{'methods'};
     $freenas_api_variables = $freenas_api_version_matrix->{$freenas_api_version}->{'variables'};
     $freenas_global_config = $freenas_global_config_list->{$apihost} = (!defined($freenas_global_config_list->{$apihost})) ? freenas_iscsi_get_globalconfiguration($scfg) : $freenas_global_config_list->{$apihost};
