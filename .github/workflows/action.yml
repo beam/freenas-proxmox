@@ -2,10 +2,12 @@ name: Dispatch build of the freenas-proxmox plugin package
 
 on:
   push:
+    branches:
+      - master
 
 jobs:
   dispatch:
-    name: Dispatch to build the package
+    name: Dispatch to the build and packager workflow.
     runs-on: ubuntu-latest
     steps:
       - name: Send dispatch request to 'freenas-proxmox-packer' repo.
