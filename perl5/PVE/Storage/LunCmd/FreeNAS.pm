@@ -83,7 +83,7 @@ my $freenas_api_version_matrix = {
                     "type"   => "DISK",
                     "name"   => "\$name",
                     "disk"   => "\$device",
-                },	
+                },
             },
             "targetextent" => {
                 "resource"    => "/api/v2.0/iscsi/targetextent/",
@@ -511,6 +511,7 @@ sub freenas_iscsi_create_extent {
     my $name = $lun_path;
     $name  =~ s/^.*\///; # all from last /
     $name  = $scfg->{'pool'} . '/' . $name;
+    $name  =~ s/\//-/; # replace / to -
 
     my $device = $lun_path;
     $device =~ s/^\/dev\///; # strip /dev/
