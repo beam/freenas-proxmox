@@ -399,11 +399,11 @@ sub freenas_api_check {
             $result->{'fullversion'} =~ s/^"//g;
         }
         syslog("info", (caller(0))[3] . " : successful : Server version: " . $result->{'fullversion'});
-        $result->{'fullversion'} =~ s/^(\w+)\-(\d+)\.(\d+)\-(?:U|BETA)(\d?)\.?(\d?)//;
-        my $freenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $4 || 0, $5 || 0);
+        $result->{'fullversion'} =~ /^(\w+(?:-\w+)?)\-(\d+)\.(\d+)/;
+        my $freenas_version = sprintf("%02d%02d", $2, $3 || 0);
         $product_name = $1;
         syslog("info", (caller(0))[3] . " : ". $product_name . " Unformatted Version: " . $freenas_version);
-        if ($freenas_version >= 11030100) {
+        if ($freenas_version >= 1103) {
             $freenas_api_version = "v2.0";
             $dev_prefix = "/dev/";
         }
