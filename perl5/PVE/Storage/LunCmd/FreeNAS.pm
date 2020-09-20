@@ -439,7 +439,7 @@ sub freenas_api_call {
     $freenas_rest_connection = $freenas_server_list->{$apihost};
     $freenas_global_config = $freenas_global_config_list->{$apihost};
     my $json_data = (defined $data) ? encode_json($data) : undef;
-    $freenas_rest_connection->$method($path, $json_data);
+    $freenas_rest_connection->request($method, $path, $json_data);
     syslog("info", (caller(0))[3] . " : successful");
     return;
 }
