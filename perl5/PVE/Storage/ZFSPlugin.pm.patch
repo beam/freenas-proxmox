@@ -129,7 +129,7 @@
 +	sleep 3;
 +	run_command("iscsiadm -m session --rescan");
 +	sleep 3;
-+	my $line = `multipath -ll | grep \"$wwid_end\"`;
++	my $line = `/usr/sbin/multipath -ll | grep \"$wwid_end\"`;
 +	my ($mapper_device) = split(' ', $line);
 +	$mapper_device = "" unless $mapper_device;
 +	$mapper .= $mapper_device;
