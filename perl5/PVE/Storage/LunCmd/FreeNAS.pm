@@ -510,6 +510,8 @@ sub freenas_iscsi_create_extent {
 
     my $name = $lun_path;
     $name  =~ s/^.*\///; # all from last /
+    if ($product_name eq "TrueNAS-SCALE") {
+        $scfg->{'pool'} =~ s/\//-/;
     $name  = $scfg->{'pool'} . ($product_name eq "TrueNAS-SCALE" ? '-' : '/') . $name;
 
     my $device = $lun_path;
