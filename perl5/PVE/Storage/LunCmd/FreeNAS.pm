@@ -84,16 +84,8 @@ sub run_create_lu {
     my $target_id = freenas_get_targetid($scfg);
     die "Unable to find the target id for $scfg->{target}" if !defined($target_id);
 
-    my $bs=$scfg->{blocksize};
-    if (index($bs, "k") >= 0 ) {
-       chop($bs); $bs = $bs * 1024;
-       syslog("info","FreeNAS::create_lu(lun_path=$lun_path, lun_id=$lun_id) : blocksize convert $scfg->{blocksize} = $bs");
-    } else  {
-       syslog("info","FreeNAS::create_lu(lun_path=$lun_path, lun_id=$lun_id) : blocksize $bs");
-    }
-
     # Create the extent
-    my $extent = freenas_iscsi_create_extent($scfg, $lun_path, $bs);
+    my $extent = freenas_iscsi_create_extent($scfg, $lun_path);
 
     # Associate the new extent to the target
     my $link = freenas_iscsi_create_target_to_extent($scfg , $target_id , $extent->{'id'} , $lun_id );
@@ -220,10 +212,9 @@ sub freenas_iscsi_get_extent {
 # Parameters:
 #   - target config (scfg)
 #   - lun_path
-#   - lun_bs
 
 sub freenas_iscsi_create_extent {
-    my ($scfg, $lun_path, $lun_bs) = @_;
+    my ($scfg, $lun_path) = @_;
 
     my $name = $lun_path;
     $name  =~ s/^.*\///; # all from last /
@@ -235,7 +226,6 @@ sub freenas_iscsi_create_extent {
     my $request = {
         "iscsi_target_extent_type"      => "Disk",
         "iscsi_target_extent_name"      => $name,
-        "iscsi_target_extent_blocksize" => $lun_bs,
         "iscsi_target_extent_disk"      => $device,
     };
 
@@ -243,7 +233,7 @@ sub freenas_iscsi_create_extent {
     my $code = $client->responseCode();
     if ($code == 201) {
       my $result = decode_json($client->responseContent());
-      syslog("info","FreeNAS::API::create_extent(lun_path=". $result->{'iscsi_target_extent_path'} . ", lun_bs=$lun_bs) : sucessfull");
+      syslog("info","FreeNAS::API::create_extent(lun_path=". $result->{'iscsi_target_extent_path'} . ") : sucessfull");
       return $result;
     } else {
       freenas_api_log_error($client, "create_extent");
