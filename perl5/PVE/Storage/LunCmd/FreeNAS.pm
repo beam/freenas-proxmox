@@ -395,11 +395,13 @@ sub freenas_api_check {
             $result = decode_json($freenas_rest_connection->responseContent());
         };
         if ($@) {
-            $result->{'fullversion'} = $freenas_rest_connection->responseContent();
-            $result->{'fullversion'} =~ s/^"//g;
+            $result = $freenas_rest_connection->responseContent();
+        } else {
+            $result = $freenas_rest_connection->responseContent();
         }
-        syslog("info", (caller(0))[3] . " : successful : Server version: " . $result->{'fullversion'});
-        $result->{'fullversion'} =~ s/^((?!\-\d).*)\-(\d+)\.(\d+)\-([A-Za-z]*)(?(?=\-)\-(\d*)\-(\d*)|(\d?)\.?(\d?))//;
+        $result =~ s/^"//g;
+        syslog("info", (caller(0))[3] . " : successful : Server version: " . $result);
+        $result =~ s/^((?!\-\d).*)\-(\d+)\.(\d+)\-([A-Za-z]*)(?(?=\-)\-(\d*)\-(\d*)|(\d?)\.?(\d?))//;
         $product_name = $1;
         my $freenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $7 || 0, $8 || 0);
         syslog("info", (caller(0))[3] . " : ". $product_name . " Unformatted Version: " . $freenas_version);
@@ -510,6 +512,9 @@ sub freenas_iscsi_create_extent {
 
     my $name = $lun_path;
     $name  =~ s/^.*\///; # all from last /
+    if ($product_name eq "TrueNAS-SCALE") {
+        $scfg->{'pool'} =~ s/\//-/;
+    }
     $name  = $scfg->{'pool'} . ($product_name eq "TrueNAS-SCALE" ? '-' : '/') . $name;
 
     my $device = $lun_path;
