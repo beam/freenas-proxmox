@@ -27,6 +27,8 @@ my $runawayprevent = 0;                    # Recursion prevention variable
 my $freenas_api_version = "v1.0";          # Default to v1.0 of the API's
 my $freenas_api_methods = undef;           # API Methods Nested HASH Ref
 my $freenas_api_variables = undef;         # API Variable Nested HASH Ref
+my $truenas_version = undef;
+my $truenas_release_type = "Production";
 
 # FreeNAS/TrueNAS (CORE) API Versioning HashRef Matrix
 my $freenas_api_version_matrix = {
@@ -206,7 +208,7 @@ sub run_list_lu {
     my $result = undef;
     my $luns = freenas_list_lu($scfg);
     foreach my $lun (@$luns) {
-        syslog("info", (caller(0))[3] . " : Verifing '$lun->{$freenas_api_variables->{'extentpath'}}' and '$object'");
+        syslog("info", (caller(0))[3] . " : Verifing '$dev_prefix$lun->{$freenas_api_variables->{'extentpath'}}' and '$object'");
         if ($dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}} eq $object) {
             $result = $result_value_type eq "lun-id" ? $lun->{$freenas_api_variables->{'lunid'}} : $dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}};
             syslog("info",(caller(0))[3] . "($object) '$result_value_type' found $result");
@@ -232,7 +234,7 @@ sub run_list_extent {
     my $result = undef;
     my $luns = freenas_list_lu($scfg);
     foreach my $lun (@$luns) {
-        syslog("info", (caller(0))[3] . " : Verifing '$lun->{$freenas_api_variables->{'extentpath'}}' and '$object'");
+        syslog("info", (caller(0))[3] . " : Verifing '$dev_prefix$lun->{$freenas_api_variables->{'extentpath'}}' and '$object'");
         if ($dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}} eq $object) {
             $result = $lun->{$freenas_api_variables->{'extentnaa'}};
             syslog("info","FreeNAS::list_extent($object): naa found $result");
@@ -399,15 +401,27 @@ sub freenas_api_check {
         } else {
             $result = $freenas_rest_connection->responseContent();
         }
-        $result =~ s/^"//g;
+        $result =~ s/"//g;
         syslog("info", (caller(0))[3] . " : successful : Server version: " . $result);
-        $result =~ s/^((?!\-\d).*)\-(\d+)\.(\d+)\-([A-Za-z]*)(?(?=\-)\-(\d*)\-(\d*)|(\d?)\.?(\d?))//;
-        $product_name = $1;
-        my $freenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $7 || 0, $8 || 0);
-        syslog("info", (caller(0))[3] . " : ". $product_name . " Unformatted Version: " . $freenas_version);
-        if ($freenas_version >= 11030100) {
+        if ($result =~ /^(TrueNAS|FreeNAS)-(\d+)\.(\d+)\-U(\d+)(?(?=\.)\.(\d+))$/) {
+            $product_name = $1;
+            $truenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $4 || 0, $5 || 0);
+        } elsif ($result =~ /^(TrueNAS-SCALE)-(\d+)\.(\d+)(?(?=\-)-(\w+))\.(\d+)(?(?=\.)\.(\d+))(?(?=\-)-(\d+))$/) {
+            $product_name = $1;
+            $truenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $5 || 0, $7 || 0);
+            $truenas_release_type = $4 || "Production";
+        } else {
+            $product_name = "Unknown";
+            $truenas_release_type = "Unknown";
+            syslog("error", (caller(0))[3] . " : Could not parse the version of TrueNAS.");
+        }
+        syslog("info", (caller(0))[3] . " : ". $product_name . " Unformatted Version: " . $truenas_version);
+        if ($truenas_version >= 11030100) {
             $freenas_api_version = "v2.0";
             $dev_prefix = "/dev/";
+        }
+        if ($truenas_release_type ne "Production") {
+            syslog("warn", (caller(0))[3] . " : The '" . $product_name . "' release type of '" . $truenas_release_type . "' may not worked due to unsupported changes.");
         }
     } else {
         syslog("info", (caller(0))[3] . " : REST Client already initialized");
