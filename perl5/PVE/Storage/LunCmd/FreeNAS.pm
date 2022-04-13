@@ -199,52 +199,45 @@ sub run_list_view {
 
 #
 #
-#
+# Optimized
 sub run_list_lu {
     my ($scfg, $timeout, $method, $result_value_type, @params) = @_;
     my $object = $params[0];
-    syslog("info", (caller(0))[3] . " : called with (method=$method; result_value_type=$result_value_type; object=$object)");
-
     my $result = undef;
     my $luns = freenas_list_lu($scfg);
-    foreach my $lun (@$luns) {
-        syslog("info", (caller(0))[3] . " : Verifing '$dev_prefix$lun->{$freenas_api_variables->{'extentpath'}}' and '$object'");
-        if ($dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}} eq $object) {
-            $result = $result_value_type eq "lun-id" ? $lun->{$freenas_api_variables->{'lunid'}} : $dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}};
-            syslog("info",(caller(0))[3] . "($object) '$result_value_type' found $result");
-            last;
-        }
-    }
-    if(!defined($result)) {
-        syslog("info", (caller(0))[3] . "($object) : $result_value_type : lun not found");
-    }
+    syslog("info", (caller(0))[3] . " : called with (method: '$method'; result_value_type: '$result_value_type'; param[0]: '$object')");
 
+    $object =~ s/^\Q$dev_prefix//;
+    syslog("info", (caller(0))[3] . " : TrueNAS object to find: '$object'");
+    if (defined($luns->{$object})) {
+        my $lu_object = $luns->{$object};
+        $result = $result_value_type eq "lun-id" ? $lu_object->{$freenas_api_variables->{'lunid'}} : $dev_prefix . $lu_object->{$freenas_api_variables->{'extentpath'}};
+        syslog("info",(caller(0))[3] . " '$object' with key '$result_value_type' found with value: '$result'");
+    } else {
+        syslog("info", (caller(0))[3] . " '$object' with key '$result_value_type' was not found");
+    }
     return $result;
 }
 
 #
 #
-#
+# Optimzed
 sub run_list_extent {
     my ($scfg, $timeout, $method, @params) = @_;
     my $object = $params[0];
-
-    syslog("info", (caller(0))[3] . " : called with (method=$method; object=$object)");
-
+    syslog("info", (caller(0))[3] . " : called with (method: '$method'; params[0]: '$object')");
     my $result = undef;
     my $luns = freenas_list_lu($scfg);
-    foreach my $lun (@$luns) {
-        syslog("info", (caller(0))[3] . " : Verifing '$dev_prefix$lun->{$freenas_api_variables->{'extentpath'}}' and '$object'");
-        if ($dev_prefix . $lun->{$freenas_api_variables->{'extentpath'}} eq $object) {
-            $result = $lun->{$freenas_api_variables->{'extentnaa'}};
-            syslog("info","FreeNAS::list_extent($object): naa found $result");
-            last;
-        }
-    }
-    if (!defined($result)) {
-        syslog("info","FreeNAS::list_extent($object): naa not found");
-    }
 
+    $object =~ s/^\Q$dev_prefix//;
+    syslog("info", (caller(0))[3] . " TrueNAS object to find: '$object'");
+    if (defined($luns->{$object})) {
+        my $lu_object = $luns->{$object};
+        $result = $lu_object->{$freenas_api_variables->{'extentnaa'}};
+        syslog("info",(caller(0))[3] . " '$object' wtih key '$freenas_api_variables->{'extentnaa'}' found with value: '$result'");
+    } else {
+        syslog("info",(caller(0))[3] . " '$object' with key '$freenas_api_variables->{'extentnaa'}' was not found");
+    }
     return $result;
 }
 
@@ -282,24 +275,24 @@ sub run_create_lu {
 
 #
 #
-#
+# Optimzied
 sub run_delete_lu {
     my ($scfg, $timeout, $method, @params) = @_;
     my $lun_path  = $params[0];
 
-    syslog("info", (caller(0))[3] . " : called with (method=$method; param[0]=$lun_path)");
+    syslog("info", (caller(0))[3] . " : called with (method: '$method'; param[0]: '$lun_path')");
 
     my $luns      = freenas_list_lu($scfg);
     my $lun       = undef;
     my $link      = undef;
-    foreach my $item (@$luns) {
-       if($dev_prefix . $item->{ $freenas_api_variables->{'extentpath'}} eq $lun_path) {
-           $lun = $item;
-           last;
-       }
-    }
+    $lun_path =~ s/^\Q$dev_prefix//;
 
-    die "Unable to find the lun $lun_path for $scfg->{target}" if !defined($lun);
+    if (defined($luns->{$lun_path})) {
+        $lun = $luns->{$lun_path};
+        syslog("info",(caller(0))[3] . " lun: '$lun_path' found");
+    } else {
+        die "Unable to find the lun $lun_path for $scfg->{target}";
+    }
 
     my $target_id = freenas_get_targetid($scfg);
     die "Unable to find the target id for $scfg->{target}" if !defined($target_id);
@@ -697,7 +690,7 @@ sub freenas_list_lu {
     my $targets   = freenas_iscsi_get_target($scfg);
     my $target_id = freenas_get_targetid($scfg);
 
-    my @luns        = ();
+    my %lun_hash;
     my $iscsi_lunid = undef;
 
     if(defined($target_id)) {
@@ -709,21 +702,21 @@ sub freenas_list_lu {
                 foreach my $node (@$extents) {
                     if($node->{'id'} == $item->{$freenas_api_variables->{'extentid'}}) {
                         if ($item->{$freenas_api_variables->{'lunid'}} =~ /(\d+)/) {
-                            $iscsi_lunid = "$1";
+                            if (defined($node)) {
+                                $node->{$freenas_api_variables->{'lunid'}} .= "$1";
+                                $lun_hash{$node->{$freenas_api_variables->{'extentpath'}}} = $node;
+                            }
+                            last;
                         } else {
-                            syslog("info", (caller(0))[3] . " : iscsi_lunid did not pass tainted testing");
-                            next;
+                            syslog("warn", (caller(0))[3] . " : iscsi_lunid did not pass tainted testing");
                         }
-                        $node->{$freenas_api_variables->{'lunid'}} .= $iscsi_lunid;
-                        push(@luns , $node);
-                        last;
                     }
                 }
             }
         }
     }
     syslog("info", (caller(0))[3] . " : successful");
-    return \@luns;
+    return \%lun_hash;
 }
 
 #
