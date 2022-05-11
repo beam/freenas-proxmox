@@ -1,7 +1,8 @@
 # FreeNAS ZFS over iSCSI interface  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TCLNEMBUYQUXN&source=url)
 
-# Due to lack of funding in the budget, I will be vacating my rack at my local Collocation center.
-# There could be a portion of time that the repo could not be available .
+## Due to lack of funding in the budget, I will be vacating my rack at my local Collocation center.
+## There could be a portion of time that the repo could not be available .
+## Currently trying JFrog for the repo. Just changing the Automation and making sure all works
 
 ## Thank you for all that have donated to the project
     Clevvi Technology
