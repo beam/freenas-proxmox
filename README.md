@@ -1,10 +1,17 @@
 # FreeNAS ZFS over iSCSI interface  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TCLNEMBUYQUXN&source=url)
 
-## Due to lack of funding in the budget, I will be vacating my rack at my local Collocation center.
-## There could be a portion of time that the repo could not be available .
-## Currently trying JFrog for the repo. Just changing the Automation and making sure all works
+## Currently trying JFrog for the repo. Just changing the Automation and making sure all works.<br/>I am currently testing an should have at least the repos up for production and testing. You will need to update your repos with the new location and gpg. I will have instructions on this page.
 
-## Thank you for all that have donated to the project
+## Also currently developing for TrueNAS-Core 13 to provide fixes to support all the [Free|True]NAS family.
+
+## Thank you for all that have recently donated to the project.
+    Daniel Most
+    Maksym Vasylenko
+    Alexander Finkhäuser - Reoccuring
+    Bjarte Kvamme - Reoccuring
+    Jonathan Schober - Reoccuring
+    
+## And thanks to all that have donated to the project in the past.
     Clevvi Technology
     Mark Elkins - Reoccuring
     Marc Hodler
@@ -37,7 +44,7 @@ On Proxmox 7
 ```bash
 apt reinstall pve-manager pve-docs libpve-storage-perl
 ```
-
+## Changing in the near future.
 Issue the following to install the repo and get your Proxmox VE updating the FreeNAS patches automatically:
 ```bash
 wget http://repo.ksatechnologies.com/debian/pve/ksatechnologies-release.gpg -O /etc/apt/trusted.gpg.d/ksatechnologies-repo.gpg
