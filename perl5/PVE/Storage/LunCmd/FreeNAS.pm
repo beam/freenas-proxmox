@@ -348,14 +348,17 @@ sub freenas_api_connect {
         $freenas_server_list->{$apihost}->getUseragent()->ssl_opts(SSL_verify_mode => SSL_VERIFY_NONE);
     }
     # Check if the APIs are accessable via the selected host and scheme
-    my $code = $freenas_server_list->{$apihost}->request('GET', $apiping)->responseCode();
-    if ($code == 200) {                # Successful connection
-        syslog("info", (caller(0))[3] . " : REST connection successful to '" . $apihost . "' using the '" . $scheme . "' protocol");
-        $runawayprevent = 0;
-    } elsif ($runawayprevent > 1) {    # Make sure we are not recursion calling.
+    my $api_response = $freenas_server_list->{$apihost}->request('GET', $apiping);
+    my $code = $api_response->responseCode();
+    my $type = $api_response->responseHeader('Content-Type');
+    syslog("info", (caller(0))[3] . " : REST connection header Content-Type:'" . $type . "'");
+    if ($runawayprevent > 1) {    # Make sure we are not recursion calling.
         freenas_api_log_error($freenas_server_list->{$apihost});
         die "Loop recursion prevention";
-    } elsif ($code == 302) {           # A 302 from FreeNAS means it doesn't like v1.0 APIs.
+    } elsif ($code == 200 && $type =~ /^text\/plain/) {                    # Successful connection
+        syslog("info", (caller(0))[3] . " : REST connection successful to '" . $apihost . "' using the '" . $scheme . "' protocol");
+        $runawayprevent = 0;
+    } elsif ($code == 302 || ($code == 200 && $type !~ /^text\/plain/)) {  # A 302 or Content-Type is not text/plain from {True|Free}NAS means it doesn't like v1.0 APIs.
         syslog("info", (caller(0))[3] . " : Changing to v2.0 API's");
         $runawayprevent++;
         $apiping =~ s/v1\.0/v2\.0/;
@@ -399,6 +402,10 @@ sub freenas_api_check {
         if ($result =~ /^(TrueNAS|FreeNAS)-(\d+)\.(\d+)\-U(\d+)(?(?=\.)\.(\d+))$/) {
             $product_name = $1;
             $truenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $4 || 0, $5 || 0);
+        } elsif ($result =~ /^(TrueNAS)-(\d+)\.(\d+)(?(?=\-U\d+)-U(\d+)|-\w+)(?(?=\.).(\d+))$/) {
+            $product_name = $1;
+            $truenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $4 || 0, $6 || 0);
+            $truenas_release_type = $5 || "Production";
         } elsif ($result =~ /^(TrueNAS-SCALE)-(\d+)\.(\d+)(?(?=\-)-(\w+))\.(\d+)(?(?=\.)\.(\d+))(?(?=\-)-(\d+))$/) {
             $product_name = $1;
             $truenas_version = sprintf("%02d%02d%02d%02d", $2, $3 || 0, $5 || 0, $7 || 0);
