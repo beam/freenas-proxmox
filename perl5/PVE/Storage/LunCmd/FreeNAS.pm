@@ -535,7 +535,7 @@ sub freenas_iscsi_create_extent {
     $name  =~ s/^.*\///; # all from last /
     my $pool = $scfg->{'pool'};
     if ($product_name eq "TrueNAS-SCALE") {
-        $pool =~ s/\//-/;
+        $pool =~ s/\//-/g;
     }
     $name  = $pool . ($product_name eq "TrueNAS-SCALE" ? '-' : '/') . $name;
 
