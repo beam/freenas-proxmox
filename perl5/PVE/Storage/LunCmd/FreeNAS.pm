@@ -352,23 +352,30 @@ sub freenas_api_connect {
     my $code = $api_response->responseCode();
     my $type = $api_response->responseHeader('Content-Type');
     syslog("info", (caller(0))[3] . " : REST connection header Content-Type:'" . $type . "'");
-    if ($runawayprevent > 1) {    # Make sure we are not recursion calling.
+
+    # Make sure we are not recursion calling.
+    if ($runawayprevent > 1) {
         freenas_api_log_error($freenas_server_list->{$apihost});
         die "Loop recursion prevention";
-    } elsif ($code == 200 && $type =~ /^text\/plain/) {                    # Successful connection
+    # Successful connection
+    } elsif ($code == 200 && ($type =~ /^text\/plain/ || $type =~ /^application\/json/)) {
         syslog("info", (caller(0))[3] . " : REST connection successful to '" . $apihost . "' using the '" . $scheme . "' protocol");
         $runawayprevent = 0;
-    } elsif ($code == 302 || ($code == 200 && $type !~ /^text\/plain/)) {  # A 302 or Content-Type is not text/plain from {True|Free}NAS means it doesn't like v1.0 APIs.
+    # A 302 or 200 with Content-Type not 'text/plain' from {True|Free}NAS means it doesn't like v1.0 APIs.
+    # So change to v2.0 APIs.
+    } elsif ($code == 302 || ($code == 200 && $type !~ /^text\/plain/)) {
         syslog("info", (caller(0))[3] . " : Changing to v2.0 API's");
         $runawayprevent++;
         $apiping =~ s/v1\.0/v2\.0/;
         freenas_api_connect($scfg);
-    } elsif ($code == 307) {           # A 307 from FreeNAS means rediect http to https.
+    # A 307 from FreeNAS means rediect http to https.
+    } elsif ($code == 307) {
         syslog("info", (caller(0))[3] . " : Redirecting to HTTPS protocol");
         $runawayprevent++;
         $scfg->{freenas_use_ssl} = 1;
         freenas_api_connect($scfg);
-    } else {                           # For now, any other code we fail.
+    # For now, any other code we fail.
+    } else {
         freenas_api_log_error($freenas_server_list->{$apihost});
         die "Unable to connect to the FreeNAS API service at '" . $apihost . "' using the '" . $scheme . "' protocol";
     }
