@@ -2,7 +2,7 @@
 
 ### JFrog support is NOT the best and I am having so many issues just trying to login to the product. The backend product works like a champ but I was experimenting with it and didn’t have it exactly right before it automatically logged me out and could not get back in. Currently, looking at Cloudsmith with some success there but I don’t have control of the components section (e.g.-main, testing).
 
-### - Support for TrueNAS 13 is available<br/>  - TrueNAS-Scale patched for issues with paths that had more then one level (e.g. Tank/Disk/vDisks)
+### - Support for TrueNAS 13 is available<br/>  - Patched for issues with TrueNAS-Scale paths that had more then one level (e.g. Tank/Disk/vDisks) when converting slashes to dashes.
 
 ## Thank you for all that have recently donated to the project - Updated 2022-05-25
     Alexander Finkhäuser - Reoccuring
