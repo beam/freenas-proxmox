@@ -1,9 +1,8 @@
 # FreeNAS ZFS over iSCSI interface  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TCLNEMBUYQUXN&source=url)
 
-## JFrog support is NOT the best and I am having so many issues just trying to login to the product. The backend product works like a champ but I was experimenting with it and didn’t have it exactly right before it automatically logged me out and could not get back in. Currently, looking at Cloudsmith with some success there but I don’t have control of the components section (e.g.-main, testing).
+### JFrog support is NOT the best and I am having so many issues just trying to login to the product. The backend product works like a champ but I was experimenting with it and didn’t have it exactly right before it automatically logged me out and could not get back in. Currently, looking at Cloudsmith with some success there but I don’t have control of the components section (e.g.-main, testing).
 
-## Support for TrueNAS 13 is available
-## TrueNAS-Scale patched for issues with paths that had more then one level (e.g. Tank/Disk/vDisks)
+### - Support for TrueNAS 13 is available<br/>  - TrueNAS-Scale patched for issues with paths that had more then one level (e.g. Tank/Disk/vDisks)
 
 ## Thank you for all that have recently donated to the project - Updated 2022-05-25
     Alexander Finkhäuser - Reoccuring
@@ -16,7 +15,7 @@
     Velocity Host
     Robert Hancock
     
-## And thanks to all that have donated to the project in the past.
+### And thanks to all that have donated to the project in the past.
     Clevvi Technology
     Mark Elkins
     Marc Hodler
@@ -49,7 +48,7 @@ On Proxmox 7
 ```bash
 apt reinstall pve-manager pve-docs libpve-storage-perl
 ```
-## Changing in the near future.
+## ATTENTION: UNAVAILABLE AT THIS TIME.
 Issue the following to install the repo and get your Proxmox VE updating the FreeNAS patches automatically:
 ```bash
 wget http://repo.ksatechnologies.com/debian/pve/ksatechnologies-release.gpg -O /etc/apt/trusted.gpg.d/ksatechnologies-repo.gpg
@@ -63,9 +62,7 @@ echo "deb http://repo.ksatechnologies.com/debian/pve stable freenas-proxmox" > /
 * Remove the need for SSH keys and use the API
   * This is tricky because the format needs to be that of the output of'zfs list' which is not part of the LunCmd but that of the backend Proxmox VE system and the API's do a bunch of JSON stuff.
 
-#### If you'd like, you may also issue the following commands now or later to use the 'testing' repo.
-#### Just comment the 'stable' line and uncomment the 'testing' line in 
-#### /etc/apt/sources.list.d/ksatechnologies-repo.list to use. 'testing' is disabled be default.
+#### If you'd like, you may also issue the following commands now or later to use the 'testing' repo.<br/>Just comment the 'stable' line and uncomment the 'testing' line in<br/>/etc/apt/sources.list.d/ksatechnologies-repo.list to use. 'testing' is disabled be default.<br/>ATTENTION: UNAVAILABLE AT THIS TIME.
 ```bash
 echo "" >> /etc/apt/sources.list.d/ksatechnologies-repo.list
 echo "# deb http://repo.ksatechnologies.com/debian/pve testing freenas-proxmox" >> /etc/apt/sources.list.d/ksatechnologies-repo.list
