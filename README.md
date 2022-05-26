@@ -1,19 +1,24 @@
 # FreeNAS ZFS over iSCSI interface  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TCLNEMBUYQUXN&source=url)
 
-## Currently trying JFrog for the repo. Just changing the Automation and making sure all works.<br/>I am currently testing an should have at least the repos up for production and testing. You will need to update your repos with the new location and gpg. I will have instructions on this page.
+## JFrog support is NOT the best and I am having so many issues just trying to login to the product. The backend product works like a champ but I was experimenting with it and didn’t have it exactly right before it automatically logged me out and could not get back in. Currently, looking at Cloudsmith with some success there but I don’t have control of the components section (e.g.-main, testing).
 
-## Also currently developing for TrueNAS-Core 13 to provide fixes to support all the [Free|True]NAS family.
+## Support for TrueNAS 13 is available
+## TrueNAS-Scale patched for issues with paths that had more then one level (e.g. Tank/Disk/vDisks)
 
-## Thank you for all that have recently donated to the project.
-    Daniel Most
-    Maksym Vasylenko
+## Thank you for all that have recently donated to the project - Updated 2022-05-25
     Alexander Finkhäuser - Reoccuring
     Bjarte Kvamme - Reoccuring
     Jonathan Schober - Reoccuring
+    Mark Komarinski
+    Jesse Bryan
+    Maksym Vasylenko
+    Daniel Most
+    Velocity Host
+    Robert Hancock
     
 ## And thanks to all that have donated to the project in the past.
     Clevvi Technology
-    Mark Elkins - Reoccuring
+    Mark Elkins
     Marc Hodler
     Martin Gonzalez
 
