@@ -8,6 +8,7 @@ curl -1sLf \
   'https://dl.cloudsmith.io/public/ksatechnologies/truenas-proxmox/setup.deb.sh' \
   | sudo -E bash
 ```
+[![This version of 'freenas-proxmox' @ Cloudsmith](https://api-prd.cloudsmith.io/v1/badges/version/ksatechnologies/truenas-proxmox/deb/freenas-proxmox/2.2.0-0-beta1/a=all;d=debian%252Fany-version;t=binary/?render=true)](https://cloudsmith.io/~ksatechnologies/repos/truenas-proxmox/packages/detail/deb/freenas-proxmox/2.2.0-0-beta1/a=all;d=debian%252Fany-version;t=binary/)
 
 ### - Support for TrueNAS 13 is available<br/>  - Patched for issues with TrueNAS-Scale paths that had more then one level (e.g. Tank/Disk/vDisks) when converting slashes to dashes.
 
