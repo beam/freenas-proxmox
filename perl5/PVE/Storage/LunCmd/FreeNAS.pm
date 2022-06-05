@@ -354,16 +354,16 @@ sub freenas_api_connect {
     syslog("info", (caller(0))[3] . " : REST connection header Content-Type:'" . $type . "'");
 
     # Make sure we are not recursion calling.
-    if ($runawayprevent > 1) {
+    if ($runawayprevent > 2) {
         freenas_api_log_error($freenas_server_list->{$apihost});
         die "Loop recursion prevention";
     # Successful connection
     } elsif ($code == 200 && ($type =~ /^text\/plain/ || $type =~ /^application\/json/)) {
         syslog("info", (caller(0))[3] . " : REST connection successful to '" . $apihost . "' using the '" . $scheme . "' protocol");
         $runawayprevent = 0;
-    # A 302 or 200 with Content-Type not 'text/plain' from {True|Free}NAS means it doesn't like v1.0 APIs.
+    # A 302 or 200 (We already check for the correct 'type' above with a 200 so why add additional conditionals).
     # So change to v2.0 APIs.
-    } elsif ($code == 302 || ($code == 200 && $type !~ /^text\/plain/)) {
+    } elsif ($code == 302 || $code == 200) {
         syslog("info", (caller(0))[3] . " : Changing to v2.0 API's");
         $runawayprevent++;
         $apiping =~ s/v1\.0/v2\.0/;
@@ -533,11 +533,15 @@ sub freenas_iscsi_create_extent {
 
     my $name = $lun_path;
     $name  =~ s/^.*\///; # all from last /
+
     my $pool = $scfg->{'pool'};
+    # If TrueNAS-SCALE the slashes (/) need to be converted to dashes (-)
     if ($product_name eq "TrueNAS-SCALE") {
         $pool =~ s/\//-/g;
+        syslog("info", (caller(0))[3] . " : TrueNAS-SCALE slash to dash conversion '" . $pool ."'");
     }
     $name  = $pool . ($product_name eq "TrueNAS-SCALE" ? '-' : '/') . $name;
+    syslog("info", (caller(0))[3] . " : " . $product_name . " extent '". $name . "'");
 
     my $device = $lun_path;
     $device =~ s/^\/dev\///; # strip /dev/
