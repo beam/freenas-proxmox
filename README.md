@@ -1,6 +1,6 @@
 # TrueNAS ZFS over iSCSI interface  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TCLNEMBUYQUXN&source=url)
 
-## !!! ATTENTION 2023-07-13: JFrog has canceled my repo for all my projects. I am currently looking at other solutions. Please be patient while I remedy the situation!!!
+## :rotating_light: ATTENTION 2023-08-09 :rotating_light: :construction: New repo coming soon :construction: Thanks for your patience.
 
 ### Updates 2023-02-12<br/>  - Added `systemctl restart pvescheduler.service` command to the package.
 #### Roadmap
